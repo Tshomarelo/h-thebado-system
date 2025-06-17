@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %} <!-- If you use django-crispy-forms -->
+
+{% block title %}Add Vehicle to COD Customer: {{ form.initial.customer.name|default:"Customer" }} - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4" style="color: #E2E8F0;">Add Vehicle for COD Customer: {{ form.initial.customer.name|default:"N/A" }}</h2>
+        <div class="form-container">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% if form.customer.errors %}
+                    <div class="alert alert-danger" style="background-color: #4A0404; color: #FEB2B2; border-color: #FC8181;">
+                        <p class="mb-0">Error with customer association: {{ form.customer.errors|join:", " }}</p>
+                    </div>
+                {% endif %}
+                {% if form.initial.customer %}
+                     <input type="hidden" name="customer" value="{{ form.initial.customer.pk }}">
+                {% else %}
+                     <p>
+                        <label for="{{ form.customer.id_for_label }}">Customer:</label>
+                        {{ form.customer }}
+                        {% for error in form.customer.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                    </p>
+                {% endif %}
+
+                <p>
+                    <label for="{{ form.registration_number.id_for_label }}">Vehicle Registration Number:</label>
+                    {{ form.registration_number }}
+                    {% for error in form.registration_number.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.company_name_on_vehicle.id_for_label }}">Company Name on Vehicle (if different):</label>
+                    {{ form.company_name_on_vehicle }}
+                    {% for error in form.company_name_on_vehicle.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.notes.id_for_label }}">Notes (Optional):</label>
+                    {{ form.notes }}
+                    {% for error in form.notes.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p class="mb-3">
+                    {{ form.is_active.label_tag }}
+                    {{ form.is_active }}
+                    {% for error in form.is_active.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                
+                <button type="submit" class="btn btn-primary mt-3">Save Vehicle</button>
+                {% if form.initial.customer %}
+                <a href="{% url 'reconciliation:codcustomer_detail' pk=form.initial.customer.pk %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                {% else %}
+                <a href="{% url 'reconciliation:codcustomer_list' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

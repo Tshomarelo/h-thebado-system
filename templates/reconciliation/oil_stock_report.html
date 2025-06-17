@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Detailed Oil Sales Report{% endblock %}
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Header and Export Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">🛢️ Oil Sales Report</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reconciliation:export_oil_sales_report_csv' %}?start_date={{ start_date }}&end_date={{ end_date }}&cashier_id={{ selected_cashier_id }}" class="btn btn-success">
+                ⬇ Export CSV
+            </a>
+            <a href="{% url 'reconciliation:export_oil_sales_report_pdf' %}?start_date={{ start_date }}&end_date={{ end_date }}&cashier_id={{ selected_cashier_id }}" class="btn btn-danger">
+                📄 Export PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="get" class="card card-body shadow-sm mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="cashier_id" class="form-label">Cashier</label>
+                <select name="cashier_id" id="cashier_id" class="form-select">
+                    <option value="">All Cashiers</option>
+                    {% for cashier in cashiers %}
+                    <option value="{{ cashier.id }}" {% if cashier.id|stringformat:"s" == selected_cashier_id %}selected{% endif %}>
+                        {{ cashier.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">🔍 Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Sales Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Cashier</th>
+                    <th>Oil Product</th>
+                    <th>Quantity Sold</th>
+                    <th>Price per Unit</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.sale_datetime|date:"Y-m-d H:i" }}</td>
+                    <td>{{ sale.cashier_responsible.username }}</td>
+                    <td>{{ sale.oil_product.name }}</td>
+                    <td>{{ sale.quantity_sold }}</td>
+                    <td>R {{ sale.price_per_unit_at_sale|floatformat:2 }}</td>
+                    <td>R {{ sale.line_total|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No sales found for the selected filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if per_cashier_totals %}
+    <div class="mt-4">
+        <h4 class="mb-2">🧾 Totals by Cashier</h4>
+        <table class="table table-bordered table-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Cashier</th>
+                    <th class="text-end">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cashier, subtotal in per_cashier_totals.items %}
+                <tr>
+                    <td>{{ cashier }}</td>
+                    <td class="text-end">R {{ subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="fw-bold border-top">
+                    <td class="text-end">Grand Total</td>
+                    <td class="text-end text-success">R {{ grand_total|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

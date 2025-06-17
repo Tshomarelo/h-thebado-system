@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Fuel Stock Orders{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4 text-primary fw-semibold">⛽ Fuel Stock Orders</h2>
+
+  <div class="mb-4">
+    <a href="{% url 'reconciliation:fuelorder_create' %}" class="btn btn-primary">
+      ➕ Log New Fuel Order
+    </a>
+  </div>
+
+  <div class="bg-white border rounded shadow-sm p-4 mb-5">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        {{ filter_form.fuel_type|as_crispy_field }}
+      </div>
+      <div class="col-md-3">
+        {{ filter_form.status|as_crispy_field }}
+      </div>
+      <div class="col-md-3">
+        {{ filter_form.supplier_name|as_crispy_field }}
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-outline-primary w-100">
+          🔍 Apply Filters
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {% if fuel_orders %}
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Order Date</th>
+          <th scope="col">Fuel Type</th>
+          <th scope="col">Qty (L)</th>
+          <th scope="col">Supplier</th>
+          <th scope="col">Expected Delivery</th>
+          <th scope="col">Status</th>
+          <th scope="col">Ordered By</th>
+          <th scope="col">Approved By</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in fuel_orders %}
+        <tr>
+          <td>{{ order.order_date|date:"Y-m-d" }}</td>
+          <td>{{ order.get_fuel_type_display }}</td>
+          <td>{{ order.quantity_ordered_liters }}</td>
+          <td>{{ order.supplier_name|default:"—" }}</td>
+          <td>{{ order.expected_delivery_date|date:"Y-m-d"|default:"—" }}</td>
+          <td>
+            <span class="badge bg-{% if order.status == 'PENDING' %}warning
+                                 {% elif order.status == 'APPROVED' %}info
+                                 {% elif order.status == 'RECEIVED' %}success
+                                 {% elif order.status == 'PARTIALLY_RECEIVED' %}primary
+                                 {% elif order.status == 'CANCELLED' %}danger
+                                 {% else %}secondary{% endif %}">
+              {{ order.get_status_display }}
+            </span>
+          </td>
+          <td>{{ order.ordered_by.username }}</td>
+          <td>{{ order.approved_by.username|default:"—" }}</td>
+          <td>
+            <a href="#" class="btn btn-sm btn-outline-secondary disabled" aria-disabled="true">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+  <nav aria-label="Fuel Order Pagination">
+    <ul class="pagination justify-content-center mt-3">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo;</span>
+        </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+          </li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&raquo;</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+    <div class="alert alert-info mt-4">
+      No fuel orders found. <a href="{% url 'reconciliation:fuelorder_create' %}">Log the first one</a> to begin tracking.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

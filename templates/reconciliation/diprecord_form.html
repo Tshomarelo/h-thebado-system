@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if object %}
+        Edit Dip Record
+    {% else %}
+        Log New Dip Measurement
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4" style="color: #E2E8F0;">
+            {% if object %}
+                Edit Dip Record
+            {% else %}
+                Log New Dip Measurement
+            {% endif %}
+        </h2>
+        <p class="text-center mb-3" style="color: #A0AEC0;">Record physical tank measurements (opening, closing, or interim).</p>
+        <div class="form-container">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-primary mt-3"> {# Changed btn-success to btn-primary #}
+                    {% if object %}
+                        Save Changes
+                    {% else %}
+                        Log Measurement
+                    {% endif %}
+                </button>
+                <a href="{% url 'reconciliation:diprecord_list' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

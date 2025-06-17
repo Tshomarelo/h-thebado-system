@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3">Oil Product Inventory</h2>
+
+  <table class="table table-bordered table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>Name</th>
+        <th>Unit</th>
+        <th>Stock</th>
+        <th>Buying Price</th>
+        <th>Selling Price</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr {% if product.is_low_stock %}class="table-warning"{% endif %}>
+        <td>{{ product.name }}</td>
+        <td>{{ product.unit_of_measure }}</td>
+        <td>{{ product.current_stock_units }}</td>
+        <td>R {{ product.buying_price }}</td>
+        <td>R {{ product.selling_price }}</td>
+        <td>
+          {% if product.is_low_stock %}
+            <span class="badge bg-warning text-dark">Low Stock</span>
+          {% else %}
+            <span class="badge bg-success">OK</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-muted">No oil products found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

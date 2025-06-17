@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Shift{% else %}Create New Shift{% endif %} - Fuel Reconciliation
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <h2 class="text-center text-light mb-4">
+            {% if form.instance.pk %}Edit Shift Record{% else %}Log New Shift Record{% endif %}
+        </h2>
+
+        <div class="form-container p-4 rounded shadow-sm" style="background-color: #1A202C;">
+            <form method="post" enctype="multipart/form-data" action="{% url 'reconciliation:shift_create' %}" id="shiftCreateForm" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- STOWE Shift ID -->
+                <div class="mb-3">
+                    <label class="form-label text-light" for="{{ form.stowe_shift_id.id_for_label }}">STOWE Shift ID</label>
+                    {{ form.stowe_shift_id }}
+                    {% for error in form.stowe_shift_id.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Cashier -->
+                <div class="mb-3">
+                    <label class="form-label text-light" for="{{ form.cashier.id_for_label }}">Cashier</label>
+                    {{ form.cashier }}
+                    {% for error in form.cashier.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Shift Type -->
+                <div class="mb-3">
+                    <label class="form-label text-light" for="{{ form.shift_type.id_for_label }}">Shift Type</label>
+                    {{ form.shift_type }}
+                    {% for error in form.shift_type.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Start Datetime -->
+                <div class="mb-3">
+                    <label class="form-label text-light" for="{{ form.start_datetime.id_for_label }}">Start Date & Time</label>
+                    {{ form.start_datetime }}
+                    {% if form.start_datetime.help_text %}
+                        <div class="form-text text-muted">{{ form.start_datetime.help_text }}</div>
+                    {% endif %}
+                    {% for error in form.start_datetime.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- End Datetime -->
+                <div class="mb-3">
+                    <label class="form-label text-light" for="{{ form.end_datetime.id_for_label }}">End Date & Time</label>
+                    {{ form.end_datetime }}
+                    {% if form.end_datetime.help_text %}
+                        <div class="form-text text-muted">{{ form.end_datetime.help_text }}</div>
+                    {% endif %}
+                    {% for error in form.end_datetime.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Source of Data -->
+                <div class="mb-3">
+                    <label class="form-label text-light" for="{{ form.source_of_data.id_for_label }}">Source of Data</label>
+                    {{ form.source_of_data }}
+                    {% if form.source_of_data.help_text %}
+                        <div class="form-text text-muted">{{ form.source_of_data.help_text }}</div>
+                    {% endif %}
+                    {% for error in form.source_of_data.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Confirmed Checkbox -->
+                <div class="form-check mb-3">
+                    {{ form.sales_data_confirmed_by_cashier }}
+                    <label class="form-check-label text-light" for="{{ form.sales_data_confirmed_by_cashier.id_for_label }}">
+                        {{ form.sales_data_confirmed_by_cashier.label }}
+                    </label>
+                    {% for error in form.sales_data_confirmed_by_cashier.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Attachment Upload -->
+                <div class="mb-3">
+                    <label class="form-label text-light" for="{{ form.attachment.id_for_label }}">Attachment (optional)</label>
+                    {{ form.attachment }}
+                    {% if form.attachment.help_text %}
+                        <div class="form-text text-muted">{{ form.attachment.help_text }}</div>
+                    {% endif %}
+                    {% for error in form.attachment.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Submit/Cancel Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-success px-4">Save Shift</button>
+                    <a href="{% url 'reconciliation:shift_list' %}" class="btn btn-secondary" style="background-color: #4A5568; border-color: #4A5568;">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

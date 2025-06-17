@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <h2>Login to Heidi</h2>
+
+        {% if form.errors %}
+            <div class="error-message">
+                <p><strong>Error:</strong> Please check your username and password.</p>
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="input-group">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+            </div>
+            <div class="input-group">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+        <button id="fingerprint-login-btn" class="login-btn" style="margin-top: 1rem; background-color: #4CAF50;">Login with Fingerprint</button>
+    </div>
+</div>
+
+<script>
+document.getElementById('fingerprint-login-btn').addEventListener('click', async () => {
+    // **TODO**: Replace this with the actual DigitalPersona SDK call to scan a fingerprint.
+    // The SDK should return a unique identifier for the fingerprint.
+    // For demonstration purposes, we'll use a prompt.
+    const response = await fetch("{% url 'users:fingerprint_login' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+        window.location.href = "{% url 'reconciliation:main_dashboard_overview' %}";
+    } else {
+        alert(data.message);
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background-color: #121212;
+        color: #fff;
+    }
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 70vh;
+    }
+    .login-card {
+        background: #1e1e1e;
+        padding: 2rem 3rem;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+    .login-card h2 {
+        margin-bottom: 1.5rem;
+        color: #00ffff;
+    }
+    .input-group {
+        margin-bottom: 1.2rem;
+        text-align: left;
+    }
+    .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #aaa;
+    }
+    .input-group input {
+        width: 100%;
+        padding: 0.6rem;
+        background: #2a2a2a;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+    }
+    .input-group input:focus {
+        outline: none;
+        border: 1px solid #00ffff;
+    }
+    .login-btn {
+        width: 100%;
+        padding: 0.7rem;
+        background-color: #00ffff;
+        border: none;
+        border-radius: 6px;
+        color: #000;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s ease;
+    }
+    .login-btn:hover {
+        background-color: #00cccc;
+    }
+    .error-message {
+        background: #ff3b3b;
+        color: #fff;
+        padding: 0.7rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+    }
+</style>
+{% endblock %}

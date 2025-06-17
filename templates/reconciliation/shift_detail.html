@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Shift Summary - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="container mt-5" id="shiftSummaryContent">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">Shift Summary: {{ shift.stowe_shift_id }}</h2>
+      <small class="text-muted">
+        Printed by {{ request.user.get_full_name|default:request.user.username }} on {{ now|date:"Y-m-d H:i:s" }}
+      </small>
+    </div>
+    <div class="d-print-none d-flex gap-2">
+      <a href="{% url 'reconciliation:generate_shift_pdf' shift.id %}" target="_blank" class="btn btn-sm btn-outline-secondary">🧾 Export PDF</a>
+      <button onclick="window.print();" class="btn btn-sm btn-outline-dark">🖨 Print Report</button>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">Cashier Details</div>
+    <div class="card-body">
+      <ul class="mb-0">
+        <li><strong>Cashier:</strong> {{ shift.cashier.get_full_name }} ({{ shift.cashier.username }})</li>
+        <li><strong>Shift Type:</strong> {{ shift.get_shift_type_display }}</li>
+        <li><strong>Start Time:</strong> {{ shift.start_datetime }}</li>
+        <li><strong>End Time:</strong> {{ shift.end_datetime }}</li>
+      </ul>
+    </div>
+  </div>
+
+  {% if congestion_entry %}
+    <div class="card mb-4">
+      <div class="card-header bg-secondary text-white">Fuel Sales (STOWE Reported)</div>
+      <div class="card-body">
+        <ul class="mb-0">
+          <li><strong>Diesel Sold:</strong> {{ congestion_entry.diesel_volume_stowe }} L</li>
+          <li><strong>ULP Sold:</strong> {{ congestion_entry.ulp_volume_stowe }} L</li>
+          <li><strong>Diesel Revenue:</strong> R {{ congestion_entry.diesel_value_rands|floatformat:2 }}</li>
+          <li><strong>ULP Revenue:</strong> R {{ congestion_entry.ulp_value_rands|floatformat:2 }}</li>
+          <li><strong>Expected Revenue (Fuel):</strong> <span class="fw-bold">R {{ expected_revenue|floatformat:2 }}</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header bg-warning text-dark">Oil Sales</div>
+      <div class="card-body">
+        {% if congestion_entry.oil_product %}
+          <ul class="mb-0">
+            <li><strong>Oil Type:</strong> {{ congestion_entry.oil_product.name }}</li>
+            <li><strong>Quantity Sold:</strong> {{ congestion_entry.oil_quantity_sold }}</li>
+            <li><strong>Oil Revenue:</strong> R {{ congestion_entry.oil_total_sale|floatformat:2 }}</li>
+          </ul>
+        {% else %}
+          <p class="text-muted mb-0">No oil sales recorded for this shift.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">Cash Received (Shift-Level)</div>
+      <div class="card-body">
+        <ul class="mb-0">
+          <li><strong>Cash Submitted:</strong> R {{ congestion_entry.cash_submitted|floatformat:2 }}</li>
+          <li><strong>Speedpoint Submitted:</strong> R {{ congestion_entry.speedpoint_submitted|floatformat:2 }}</li>
+          <li><strong>COD Deduction:</strong> R {{ congestion_entry.total_cod_sales_value_shift|floatformat:2 }}</li>
+          <li><strong>Adjustment (Ingestion):</strong>
+            {% if congestion_entry.adjustment_amount %}
+              {{ congestion_entry.adjustment_direction }} R{{ congestion_entry.adjustment_amount|floatformat:2 }}
+            {% else %}
+              <span class="text-muted">None</span>
+            {% endif %}
+          </li>
+          <li><strong>Actual Cash Received (incl. inline adjustment):</strong>
+            <span class="fw-bold">R {{ base_actual_received|floatformat:2 }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    {% if fuel_adjustments %}
+      <div class="card mb-4">
+        <div class="card-header bg-dark text-white">Post-Submission Adjustments</div>
+        <div class="card-body p-0">
+          <table class="table table-bordered table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Note</th>
+                <th>Recorded By</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for adj in fuel_adjustments %}
+              <tr>
+                <td>{{ adj.get_direction_display }}</td>
+                <td>R {{ adj.amount|floatformat:2 }}</td>
+                <td>{{ adj.reason_note }}</td>
+                <td>{{ adj.recorded_by }}</td>
+                <td>{{ adj.created_at|date:"Y-m-d H:i" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="table-secondary">
+                <td colspan="4" class="text-end"><strong>Total Post-Adjustments</strong></td>
+                <td><strong>R {{ total_adjustment_sum|floatformat:2 }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card mb-5">
+      <div class="card-header bg-info text-dark">Final Summary</div>
+      <div class="card-body">
+        <ul class="mb-0">
+          <li><strong>Final Actual Received (Adjusted):</strong> R {{ final_actual_received|floatformat:2 }}</li>
+          <li><strong>Variance:</strong>
+            {% if final_variance > 0 %}
+              <span class="text-success fw-bold">Deficit: R {{ final_variance|floatformat:2 }}</span>
+            {% elif final_variance < 0 %}
+              <span class="text-danger fw-bold">Surplus: R {{ final_variance|floatformat:2 }}</span>
+            {% else %}
+              <span class="text-muted">Balanced: R 0.00</span>
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    {% if user.is_staff or user.is_superuser %}
+      <div class="card mb-4">
+        <div class="card-header bg-light"><strong>Add Post-Adjustment</strong></div>
+        <div class="card-body">
+          <form method="post" action="{% url 'reconciliation:add_adjustment' shift.id %}">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-md-3">
+                <label class="form-label">Type</label>
+                <select name="direction" class="form-select" required>
+                  <option value="">Select...</option>
+                  <option value="ADD">Add to Cash</option>
+                  <option value="SUB">Subtract from Cash</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Amount (R)</label>
+                <input type="number" step="0.01" name="amount" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Adjustment Reason</label>
+                <textarea name="reason_note" class="form-control" rows="2" required></textarea>
+              </div>
+            </div>
+            <div class="mt-3 text-end">
+              <button class="btn btn-primary">Submit Adjustment</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-warning">No ingestion entry found for this shift yet.</div>
+  {% endif %}
+
+  <div class="text-center mt-4">
+    <a href="{% url 'reconciliation:shift_list' %}" class="btn btn-secondary">&larr; Back to Shift List</a>
+  </div>
+</div>
+
+<style>
+  @media print {
+    .d-print-none {
+      display: none !important;
+    }
+    body {
+      -webkit-print-color-adjust: exact;
+    }
+    table {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+{% endblock %}

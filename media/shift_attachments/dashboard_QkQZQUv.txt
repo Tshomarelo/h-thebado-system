@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuel Reconciliation Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- Header Section -->
+<div class="header">
+    <div class="header-left">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 40px;">
+        
+    </div>
+    <div class="header-center">
+        <input type="text" placeholder="Search..." class="search-bar">
+    </div>
+    <div class="header-right">
+        <i class="fa fa-bell"></i>
+        <i class="fa fa-envelope"></i>
+        <i class="fa fa-cog"></i>
+        <img src="{% static 'images/profile.jpg' %}" alt="Profile" class="profile-pic" onerror="this.style.display='none';">
+        {% if user.is_authenticated %}
+             <a href="{% url 'users:logout' %}" class="logout-btn">Logout</a>
+        {% else %}
+            <a href="{% url 'users:login' %}" class="logout-btn">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- New Navigation Bar with Dropdowns -->
+<div class="navbar">
+    <a href="{% url 'reconciliation:main_dashboard_overview' %}">Home</a>
+
+    <div class="subnav">
+        <button class="subnavbtn">Shifts <i class="fa fa-caret-down"></i></button>
+        <div class="subnav-content">
+            <a href="{% url 'reconciliation:shift_list' %}">View Shifts</a>
+            <a href="{% url 'reconciliation:shift_create' %}">New Shift</a>
+            <!-- Oil Sales links removed as per redundancy -->
+        </div>
+    </div>
+
+    <div class="subnav">
+        <button class="subnavbtn">Fuel Stock <i class="fa fa-caret-down"></i></button>
+        <div class="subnav-content">
+            <a href="{% url 'reconciliation:fuelorder_list' %}">Fuel Orders</a>
+            <a href="{% url 'reconciliation:fuelorder_create' %}">New Fuel Order</a>
+            <a href="{% url 'reconciliation:receivedstock_list' %}">Stock Deliveries</a>
+            <a href="{% url 'reconciliation:receivedstock_create' %}">New Stock Delivery</a>
+            <a href="{% url 'reconciliation:diprecord_list' %}">Dip Records</a>
+            <a href="{% url 'reconciliation:diprecord_create' %}">New Dip Record</a>
+            <a href="{% url 'reconciliation:pricerecord_list' %}">Price Records</a>
+            <a href="{% url 'reconciliation:pricerecord_create' %}">New Price Record</a>
+        </div>
+    </div>
+
+    <div class="subnav">
+        <button class="subnavbtn">Customers & Finance <i class="fa fa-caret-down"></i></button>
+        <div class="subnav-content">
+            <a href="{% url 'reconciliation:codcustomer_list' %}">COD Customers</a>
+            <a href="{% url 'reconciliation:codcustomer_create' %}">New COD Customer</a>
+            <a href="{% url 'reconciliation:bankdeposit_list' %}">Bank Deposits</a>
+            <a href="{% url 'reconciliation:bankdeposit_create' %}">New Bank Deposit</a>
+        </div>
+    </div>
+
+    <div class="subnav">
+        <button class="subnavbtn">Operations <i class="fa fa-caret-down"></i></button>
+        <div class="subnav-content">
+            <a href="{% url 'reconciliation:pettycashallocation_list' %}">Petty Cash Allocations</a>
+            <a href="{% url 'reconciliation:pettycashallocation_create' %}">New Petty Cash Allocation</a>
+            <a href="{% url 'reconciliation:pettycashexpense_list' %}">Petty Cash Expenses</a>
+            <a href="{% url 'reconciliation:pettycashexpense_create' %}">New Petty Cash Expense</a>
+            <a href="{% url 'attendance:dashboard' %}">Attendance Module</a>
+        </div>
+    </div>
+    <a href="{% url 'admin:index' %}">Admin</a>
+</div>
+
+<!-- Main Dashboard Section (Content below navbar) -->
+<div class="page-content">
+    <h3 class="ms-3 mt-3 mb-3">Dashboard Overview - {{ page_title_date_range|default:"Last 7 Days" }}</h3>
+
+    <form method="get" class="mb-4 p-3 border rounded bg-light ms-3 me-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="period" class="form-label">Period</label>
+                <select name="period" id="period_dashboard" class="form-select">
+                    {% for value, display in period_choices_dashboard %}
+                        <option value="{{ value }}" {% if period_dashboard_filter_value == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3" id="start_date_col_dashboard">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" name="start_date" id="start_date_dashboard" value="{{ start_date_filter_value }}" class="form-control">
+            </div>
+            <div class="col-md-3" id="end_date_col_dashboard">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" name="end_date" id="end_date_dashboard" value="{{ end_date_filter_value }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label for="fuel_type" class="form-label">Fuel Type</label>
+                <select name="fuel_type" id="fuel_type_dashboard" class="form-select">
+                    {% for value, display in fuel_type_choices_dashboard %}
+                        <option value="{{ value }}" {% if fuel_type_dashboard_filter_value == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="dashboard-container ms-3 me-3">
+        <div class="overview-card">
+            <h4>Financial Overview (Overall)</h4>
+            <p>Cash: R{{ financial_overview.total_cash|default_if_none:"0.00" }}</p>
+            <p>Deposits: R{{ financial_overview.total_deposits|default_if_none:"0.00" }}</p>
+            <p>COD Balance: R{{ financial_overview.cod_balance|default_if_none:"0.00" }}</p>
+            {% if financial_overview.variance != 0 %}
+                <p style="color: #ffdddd;">Variance: R{{ financial_overview.variance|default_if_none:"0.00" }}</p>
+            {% endif %}
+        </div>
+        <div class="overview-card">
+            <h4>Fuel Stock Levels (Current)</h4>
+            <p>ULP: {{ fuel_stock_levels.ulp_level|default_if_none:"N/A" }} L</p>
+            <p>Diesel: {{ fuel_stock_levels.diesel_level|default_if_none:"N/A" }} L</p>
+            {% if fuel_stock_levels.ordered_vs_received_discrepancy != 0 %}
+                <p style="color: #ffeecc;">Order Discrepancy: {{ fuel_stock_levels.ordered_vs_received_discrepancy|default_if_none:"0" }} L</p>
+            {% endif %}
+        </div>
+        <div class="overview-card">
+            <h4>Shift Reconciliation (Filtered Period)</h4>
+            <p>Revenue ({{ fuel_type_dashboard_filter_value }}): R{{ shift_reconciliation_summary.total_revenue|floatformat:2|default_if_none:"0.00" }}</p>
+            {% if shift_reconciliation_summary.expected_vs_actual_variance != 0 %}
+                <p style="color: #ffdddd;">Variance: R{{ shift_reconciliation_summary.expected_vs_actual_variance|default_if_none:"0.00" }}</p>
+            {% endif %}
+            <p>Flagged: {{ shift_reconciliation_summary.flagged_discrepancies|default_if_none:"0" }}</p>
+        </div>
+        <div class="overview-card">
+            <h4>Petty Cash Tracking (Overall)</h4>
+            <p>Balance: R{{ petty_cash_expenses.remaining_balance|default_if_none:"0.00" }}</p>
+            <p>Expenses: R{{ petty_cash_expenses.total_expenses|default_if_none:"0.00" }}</p>
+        </div>
+        <div class="overview-card">
+            <h4>Profit Summary (Filtered Period: {{ fuel_type_dashboard_filter_value }})</h4>
+            <p>ULP Profit: R{{ profit_summary.display_ulp_profit|floatformat:2|default_if_none:"0.00" }}</p>
+            <p>Diesel Profit: R{{ profit_summary.display_diesel_profit|floatformat:2|default_if_none:"0.00" }}</p>
+            <p>Oil Profit: R{{ profit_summary.display_oil_profit|floatformat:2|default_if_none:"0.00" }}</p>
+            <p><strong>Total Profit (Filtered): R{{ profit_summary.total_combined_profit|floatformat:2|default_if_none:"0.00" }}</strong></p>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="charts-container">
+        <canvas id="salesTrend"></canvas>
+        <canvas id="fuelStockChart"></canvas>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; {% now "Y" %} H-Thebado System</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dashboard filter period toggle
+    const periodSelectDashboard = document.getElementById('period_dashboard');
+    const startDateColDashboard = document.getElementById('start_date_col_dashboard');
+    const endDateColDashboard = document.getElementById('end_date_col_dashboard');
+
+    function toggleDateFieldsDashboard() {
+        if (periodSelectDashboard.value === 'custom') {
+            startDateColDashboard.style.display = 'block';
+            endDateColDashboard.style.display = 'block';
+        } else {
+            startDateColDashboard.style.display = 'none';
+            endDateColDashboard.style.display = 'none';
+        }
+    }
+    if (periodSelectDashboard) {
+        periodSelectDashboard.addEventListener('change', toggleDateFieldsDashboard);
+        toggleDateFieldsDashboard(); // Initial check
+    }
+
+    // Chart data
+    const salesData = {{ sales_trend_data|safe|default:'{"labels": [], "data": []}' }};
+    const fuelStockData = {{ fuel_stock_chart_data|safe|default:'{"labels": ["ULP", "Diesel"], "data": [0,0]}' }};
+
+    var ctxSales = document.getElementById('salesTrend')?.getContext('2d');
+    if (ctxSales) {
+        var salesChart = new Chart(ctxSales, {
+            type: 'line',
+            data: {
+                labels: salesData.labels,
+                datasets: [{
+                    label: 'Sales Trend (R)',
+                    data: salesData.data,
+                    borderColor: 'rgba(100, 180, 255, 1)', // Brighter blue
+                    backgroundColor: 'rgba(100, 180, 255, 0.2)',
+                    tension: 0.1,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgba(100, 180, 255, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: '#e0e0e0', font: {size: 10} } , grid: { color: 'rgba(255,255,255,0.05)'} },
+                    x: { ticks: { color: '#e0e0e0', font: {size: 10} } , grid: { color: 'rgba(255,255,255,0.05)'} }
+                },
+                plugins: { legend: { labels: { color: '#e0e0e0', font: {size: 12} } } }
+            }
+        });
+    }
+
+    var ctxFuelStock = document.getElementById('fuelStockChart')?.getContext('2d');
+    if (ctxFuelStock) {
+        var stockChart = new Chart(ctxFuelStock, {
+            type: 'bar',
+            data: {
+                labels: fuelStockData.labels,
+                datasets: [{
+                    label: 'Stock Levels (Liters)',
+                    data: fuelStockData.data,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: '#e0e0e0', font: {size: 10} } , grid: { color: 'rgba(255,255,255,0.05)'} },
+                    x: { ticks: { color: '#e0e0e0', font: {size: 10} } , grid: { color: 'rgba(255,255,255,0.05)'} }
+                },
+                plugins: { legend: { labels: { color: '#e0e0e0', font: {size: 12} } } }
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

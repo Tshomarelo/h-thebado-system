@@ -1,0 +1,626 @@
+
+html {
+    overflow-y: auto;
+}
+
+/* Preloader Styles */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff; /* White background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 1s ease-out, visibility 1s ease-out;
+}
+
+/* Logo Animation */
+.logo-animation {
+    width: 150px; /* Adjust as needed */
+    opacity: 1;
+    animation: fadeIn 1s ease-in-out, scaleUp 1.5s ease-in-out infinite alternate;
+}
+
+/* Hide preloader after 5 seconds */
+.hidden-preloader {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1s ease-out, visibility 1s ease-out;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes scaleUp {
+    0% { transform: scale(0.9); }
+    100% { transform: scale(1.1); }
+}
+
+
+body {
+    background: #f4f6f9; /* Light background */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: #2d2d2d; /* Standard dark text */
+}
+
+/* Header Section */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    color: #2d2d2d;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.header-left h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+/* Search Bar */
+.search-bar {
+    width: 250px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #333;
+}
+
+/* Icons & Profile */
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-right i.fa {
+    color: #555;
+    font-size: 18px;
+    margin-left: 18px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+.header-right i.fa:hover {
+    color: #000;
+}
+
+.profile-pic {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin-left: 18px;
+    border: 2px solid #ccc;
+}
+
+/* Logout Button */
+.logout-btn {
+    background: #dc3545;
+    color: white;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 20px;
+    margin-left: 18px;
+    font-weight: bold;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+.logout-btn:hover {
+    background: #c82333;
+}
+
+/* Navigation Bar */
+.navbar {
+    display: flex;
+    justify-content: flex-start;
+    background-color: #ffffff;
+    border-bottom: 2px solid #fa0505; /* Slightly thicker border */
+    padding: 0 10px;
+    margin-top: 60px;
+}
+
+/* Stronger text for links */
+.navbar a, .subnav .subnavbtn {
+    font-size: 18px; /* Slightly larger */
+    font-weight: bold; /* Stronger font */
+    color: #222; /* Darker shade for sharper contrast */
+    padding: 14px 16px;
+    text-decoration: none;
+    background-color: inherit;
+    font-family: Arial, sans-serif; /* Ensuring readability */
+}
+
+.navbar a:hover, .subnav:hover .subnavbtn {
+    background-color: #f50505;
+    color: #fff; /* White text for contrast */
+}
+
+/* Dropdown Navigation */
+.subnav {
+    float: left;
+    overflow: hidden;
+}
+
+.subnav-content {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    border: 2px solid #ddd; /* Slightly thicker */
+    min-width: 220px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* More prominent shadow */
+    z-index: 1;
+}
+
+/* Stronger dropdown links */
+.subnav-content a {
+    color: #222; /* Darker text */
+    font-weight: bold; /* Make text stronger */
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.subnav-content a:hover {
+    background-color: #fa0505;
+    color: #fff; /* Ensure text remains readable */
+}
+
+/* Dropdown visibility */
+.subnav:hover .subnav-content {
+    display: block;
+}
+
+
+/* Dashboard Layout */
+.dashboard-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    background-color: #ffffff; /* Ensure main background is white */
+}
+
+.left-column {
+    flex: 1;
+    min-width: 300px;
+}
+
+.right-column {
+    flex: 1;
+    min-width: 300px;
+}
+
+/* Modern Dashboard Cards */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.overview-card {
+    background: linear-gradient(145deg, #72d672, #47b64a);
+    border-radius: 16px;
+    color: #111; /* Darker contrast for better readability */
+    box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.12),
+        inset 0 -3px 8px rgba(255, 255, 255, 0.3);
+    text-align: center;
+    font-size: 1.2rem; /* Slightly larger text */
+    font-weight: bold; /* Stronger text */
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Improved hover effect */
+.overview-card:hover {
+    transform: translateY(-6px) scale(1.05);
+    box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.18),
+        inset 0 -3px 12px rgba(255, 255, 255, 0.4);
+}
+
+/* Stronger heading */
+.overview-card h4 {
+    margin: 0 0 0.6rem;
+    font-size: 1.4rem; /* Slightly larger */
+    font-weight: 800; /* Even stronger */
+    letter-spacing: 0.03em;
+    text-shadow: 0 2px 3px rgba(255, 255, 255, 0.6);
+}
+
+/* Strengthened paragraph text */
+.overview-card p {
+    margin: 0;
+    font-size: 1.1rem; /* Slightly larger */
+    font-weight: 600; /* Stronger */
+    color: #2f2f2f; /* Solid color */
+    line-height: 1.5;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+/* Gradient text effect for title */
+.overview-card h4 {
+    background: linear-gradient(90deg, #0a84ff, #47b64a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent; /* Fallback */
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .overview-card {
+        min-height: 130px;
+        padding: 1.6rem 1.2rem;
+        font-size: 1.1rem;
+    }
+
+    .overview-card h4 {
+        font-size: 1.2rem;
+    }
+}
+
+.overview-card p {
+    margin: 0.2em 0;
+    font-size: 1rem;
+}
+
+/* Fixed size adjustment */
+.fixed-card {
+    width: 270px;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Charts */
+.charts-container canvas {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+/* Main Content */ 
+.page-content {
+    padding: 20px;
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    color: #1e3a5f;
+    font-weight: bold;
+    background-color: #e8e9ee; /* Ensure main background is white */
+}
+
+.page-content h3 {
+    color: #1e3a5f; /* Dark blue for visibility */
+    
+}
+
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px 0;
+    color: #666;
+    border-top: 1px solid #ddd;
+    background-color: #ffffff;
+}
+
+/* Form Styles */
+
+
+.form-container {
+width: 60%;
+margin: 20px auto;
+padding: 20px;
+background: #ffffff;
+border: 2px solid #006eff; /* Dark blue border */
+border-radius: 12px;
+box-shadow: 0 8px 20px #1c0df7; /* Stronger shadow */
+max-height: 80vh;
+overflow-y: auto;
+}
+
+
+.form-container label {
+font-size: 15px;
+color: #10028d; /* Dark blue text */
+font-weight: bold;
+display: block;
+margin-bottom: 8px;
+}
+
+.form-container input,
+.form-container select,
+.form-container textarea {
+width: 100%;
+padding: 12px 15px;
+margin-bottom: 20px;
+border-radius: 6px;
+border: 1px solid #ccc;
+font-size: 14px;
+background: #f9f9f9;
+color: #ff0000;
+transition: all 0.3s ease-in-out;
+}
+
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+background: #fff;
+border-color: #5bc0de;
+box-shadow: 0px 0px 8px rgba(91, 192, 222, 0.5);
+}
+
+.form-container button {
+width: 100%;
+padding: 12px 15px;
+background: #28a745;
+color: rgb(255, 255, 255);
+font-size: 16px;
+font-weight: bold;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+transition: background-color 0.3s ease, transform 0.1s ease;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+.form-container button:hover {
+background: #218838;
+transform: translateY(-1px);
+}
+
+
+
+
+.form-container input[type="text"],
+.form-container input[type="number"],
+.form-container input[type="email"],
+.form-container input[type="password"],
+.form-container input[type="date"],
+.form-container input[type="time"],
+.form-container input[type="datetime-local"],
+.form-container select,
+.form-container textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    background: #f9f9f9;
+    color: #333;
+    transition: all 0.3s ease-in-out;
+}
+
+.form-container input[type="text"]:focus,
+.form-container input[type="number"]:focus,
+.form-container input[type="email"]:focus,
+.form-container input[type="password"]:focus,
+.form-container input[type="date"]:focus,
+.form-container input[type="time"]:focus,
+.form-container input[type="datetime-local"]:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+    background: #fdfdfd;
+    border-color: #5bc0de;
+    box-shadow: 0px 0px 8px rgba(91, 192, 222, 0.5);
+}
+
+.form-container button[type="submit"],
+.form-container .btn-primary,
+.form-container .btn {
+    width: 100%;
+    padding: 12px 15px;
+    background: #28a745;
+    color: #5d2fdd;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-container button[type="submit"]:hover,
+.form-container .btn-primary:hover,
+.form-container .btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.form-container .form-text,
+.form-container .text-muted {
+    color: #6c757d !important;
+    font-size: 0.85em;
+}
+
+.form-container .invalid-feedback {
+    color: #dc3545 !important;
+    font-size: 0.9em;
+}
+.form-container .is-invalid {
+    border-color: #dc3545 !important;
+}
+
+/* Table Container */
+/* Table Container */
+.table-container {
+    width: 100%;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+/* Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead {
+    background: #f1f1f1;
+    font-weight: bold;
+}
+
+.table th, .table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    color: #222; /* Darker text for better readability */
+}
+
+/* Highlight row on hover */
+.table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Fix Button Visibility */
+button[type="submit"] {
+    font-weight: bold;
+    font-size: 16px; /* Make button text larger */
+    color: #fff;
+    background-color: #007BFF; /* Strong contrast */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Button Hover Effect */
+button[type="submit"]:hover {
+    background-color: #0056b3; /* Darker shade for hover */
+}
+
+/* Alternative Button Styling */
+.bg-green-600 {
+    background-color: #28a745 !important; /* Stronger green for export buttons */
+}
+
+.bg-red-600 {
+    background-color: #dc3545 !important; /* Stronger red for PDF export */
+}
+
+.bg-green-600:hover, .bg-red-600:hover {
+    opacity: 0.8;
+}
+
+#salesHistogram {
+    max-width: 100%;
+    max-height: 250px;
+}
+
+.charts-container canvas {
+    min-height: 150px;
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* 2x2 Grid Layout for Fullscreen Dashboard */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 100vh;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.grid > div {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    overflow-y: auto;
+}
+
+.chart-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.chart-wrapper {
+    width: 100%;
+    height: 160px;
+}
+
+.chart-wrapper.large {
+    height: 260px;
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem;
+}
+
+.chart-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.chart-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.chart-wrapper {
+    flex-grow: 1;
+    position: relative;
+}
+
+.chart-wrapper canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+

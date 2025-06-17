@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Shift Summary – Fuel Reconciliation</title>
+    <style>
+      body {
+        font-family: DejaVu Sans, sans-serif;
+        font-size: 10pt;
+        margin: 30px;
+        color: #111;
+      }
+      h2 {
+        margin-bottom: 0;
+        padding-bottom: 4px;
+      }
+      .meta {
+        font-size: 9pt;
+        color: #666;
+        margin-bottom: 15px;
+      }
+      .section {
+        margin-bottom: 30px;
+      }
+      .section h3 {
+        margin-bottom: 5px;
+        font-size: 11pt;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 2px;
+      }
+      ul {
+        margin: 0;
+        padding-left: 15px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+      th, td {
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+      }
+      thead {
+        background-color: #f0f0f0;
+      }
+      tfoot {
+        background-color: #f8f8f8;
+        font-weight: bold;
+      }
+      .text-end {
+        text-align: right;
+      }
+      .text-muted {
+        color: #999;
+      }
+      .surplus {
+        color: green;
+      }
+      .deficit {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+
+    <h2>Shift Summary: {{ shift.stowe_shift_id }}</h2>
+    <div class="meta">
+      Printed by {{ user.get_full_name|default:user.username }} on {{ now|date:"Y-m-d H:i:s" }}
+    </div>
+
+    <div class="section">
+      <h3>Cashier Details</h3>
+      <ul>
+        <li><strong>Cashier:</strong> {{ shift.cashier.get_full_name }} ({{ shift.cashier.username }})</li>
+        <li><strong>Shift Type:</strong> {{ shift.get_shift_type_display }}</li>
+        <li><strong>Start:</strong> {{ shift.start_datetime }}</li>
+        <li><strong>End:</strong> {{ shift.end_datetime }}</li>
+      </ul>
+    </div>
+
+    {% if congestion_entry %}
+    <div class="section">
+      <h3>Fuel & Oil Sales</h3>
+      <ul>
+        <li><strong>Diesel Sold:</strong> {{ congestion_entry.diesel_volume_stowe }} L</li>
+        <li><strong>ULP Sold:</strong> {{ congestion_entry.ulp_volume_stowe }} L</li>
+        <li><strong>Diesel Revenue:</strong> R {{ congestion_entry.diesel_value_rands|floatformat:2 }}</li>
+        <li><strong>ULP Revenue:</strong> R {{ congestion_entry.ulp_value_rands|floatformat:2 }}</li>
+        <li><strong>Oil:</strong>
+          {% if congestion_entry.oil_product %}
+            {{ congestion_entry.oil_product.name }} – Qty: {{ congestion_entry.oil_quantity_sold }} @ R {{ congestion_entry.oil_total_sale|floatformat:2 }}
+          {% else %}
+            <span class="text-muted">None</span>
+          {% endif %}
+        </li>
+        <li><strong>Expected Fuel Revenue:</strong> R {{ expected_revenue|floatformat:2 }}</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h3>Cash Received</h3>
+      <ul>
+        <li><strong>Cash Submitted:</strong> R {{ congestion_entry.cash_submitted|floatformat:2 }}</li>
+        <li><strong>Speedpoint Submitted:</strong> R {{ congestion_entry.speedpoint_submitted|floatformat:2 }}</li>
+        <li><strong>COD Deduction:</strong> R {{ congestion_entry.total_cod_sales_value_shift|floatformat:2 }}</li>
+        <li><strong>Ingestion Adjustment:</strong>
+          {% if congestion_entry.adjustment_amount %}
+            {{ congestion_entry.adjustment_direction }} R{{ congestion_entry.adjustment_amount|floatformat:2 }}
+          {% else %}
+            <span class="text-muted">None</span>
+          {% endif %}
+        </li>
+        <li><strong>Actual Cash Received (Incl. Adjustment):</strong> <strong>R {{ base_actual_received|floatformat:2 }}</strong></li>
+      </ul>
+    </div>
+
+    {% if fuel_adjustments %}
+    <div class="section">
+      <h3>Post-Submission Adjustments</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Note</th>
+            <th>Recorded By</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for adj in fuel_adjustments %}
+          <tr>
+            <td>{{ adj.get_direction_display }}</td>
+            <td class="text-end">R {{ adj.amount|floatformat:2 }}</td>
+            <td>{{ adj.reason_note }}</td>
+            <td>{{ adj.recorded_by }}</td>
+            <td>{{ adj.created_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-end"><strong>Total Post-Adjustments</strong></td>
+            <td class="text-end"><strong>R {{ total_adjustment_sum|floatformat:2 }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% endif %}
+
+    <div class="section">
+      <h3>Final Summary</h3>
+      <ul>
+        <li><strong>Final Actual Received:</strong> R {{ final_actual_received|floatformat:2 }}</li>
+        <li><strong>Variance:</strong>
+          {% if final_variance > 0 %}
+            <span class="deficit">Deficit: R {{ final_variance|floatformat:2 }}</span>
+          {% elif final_variance < 0 %}
+            <span class="surplus">Surplus: R {{ final_variance|floatformat:2|cut:"-" }}</span>
+          {% else %}
+            <span class="text-muted">Balanced</span>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
+    {% else %}
+    <p class="text-muted"><em>No ingestion entry recorded for this shift.</em></p>
+    {% endif %}
+
+  </body>
+</html>

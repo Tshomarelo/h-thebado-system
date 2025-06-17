@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %} <!-- If you install and use django-crispy-forms -->
+
+{% block title %}Log Cash Submission - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="text-center mb-4" style="color: #E2E8F0;">
+            <h2>Log Cash Submission for Shift: {{ form.initial.shift.stowe_shift_id|default:"N/A" }}</h2>
+            <p class="mb-1"><strong>Cashier:</strong> {{ form.initial.shift.cashier.name|default:"N/A" }}</p>
+            <p><strong>Shift Period:</strong> {{ form.initial.shift.start_datetime|date:"Y-m-d H:i" }} - {{ form.initial.shift.end_datetime|date:"Y-m-d H:i" }}</p>
+        </div>
+        
+        <div class="form-container">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" style="background-color: #4A0404; color: #FEB2B2; border-color: #FC8181;">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if form.shift.errors %}
+                    <div class="alert alert-danger" style="background-color: #4A0404; color: #FEB2B2; border-color: #FC8181;">
+                        <p class="mb-0">Error with shift association: {{ form.shift.errors|join:", " }}</p>
+                    </div>
+                {% endif %}
+
+                {% if form.initial.shift %}
+                     <input type="hidden" name="shift" value="{{ form.initial.shift.pk }}">
+                {% else %}
+                    <p class="invalid-feedback d-block">Shift information is missing. Cannot submit.</p>
+                {% endif %}
+
+                <p>
+                    <label for="{{ form.cash_submitted.id_for_label }}">Cash Submitted (R):</label>
+                    {{ form.cash_submitted }}
+                    {% for error in form.cash_submitted.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+
+                <p>
+                    <label for="{{ form.speedpoint_submitted.id_for_label }}">Speedpoint Submitted (R):</label>
+                    {{ form.speedpoint_submitted }}
+                    {% for error in form.speedpoint_submitted.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+
+                <button type="submit" class="btn btn-primary mt-3" {% if not form.initial.shift %}disabled{% endif %}>Submit Cash & Speedpoint</button>
+                {% if form.initial.shift %}
+                <a href="{% url 'reconciliation:shift_detail' pk=form.initial.shift.pk %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                {% else %}
+                <a href="{% url 'reconciliation:shift_list' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Heidi-System{% endblock %}</title>
+    {% load static %}
+   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    
+</head>
+<body class="bg-black text-light">
+    <!-- Preloader Section -->
+    <div id="preloader">
+        <div class="preloader-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Loading..." class="logo-animation">
+        </div>
+    </div>
+
+
+    <!-- Header Section -->
+    <div class="header">
+        <div class="header-left">
+            <h2><img src="{% static 'images/logo.png' %}" alt="Trulli" width="200" height="40"></h2>
+        </div>
+        <div class="header-center">
+            <input type="text" placeholder="Search..." class="search-bar">
+        </div>
+        <div class="header-right">
+            <i class="fa fa-bell"></i>
+            <i class="fa fa-envelope"></i>
+            <i class="fa fa-cog"></i>
+            <img src="{% static 'images/profile.jpg' %}" alt="Profile" class="profile-pic" onerror="this.style.display='none';">
+            {% if user.is_authenticated %}
+                <a href="{% url 'users:logout' %}" class="logout-btn">Logout</a>
+            {% else %}
+                <a href="{% url 'users:login' %}" class="logout-btn">Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Navigation Bar with Dropdowns -->
+    <div class="navbar">
+        <a href="{% url 'reconciliation:main_dashboard_overview' %}">Home</a>
+
+        <div class="subnav">
+            <button class="subnavbtn">Shifts <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                <a href="{% url 'reconciliation:shift_list' %}">View Shifts</a>
+                <a href="{% url 'reconciliation:shift_create' %}">New Shift</a>
+            </div>
+        </div>
+
+        <div class="subnav">
+            <button class="subnavbtn">Fuel Stock <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                <a href="{% url 'reconciliation:fuelorder_list' %}">Fuel Orders</a>
+                <a href="{% url 'reconciliation:fuelorder_create' %}">New Fuel Order</a>
+                <a href="{% url 'reconciliation:receivedstock_list' %}">Stock Deliveries</a>
+                <a href="{% url 'reconciliation:receivedstock_create' %}">New Stock Delivery</a>
+                <a href="{% url 'reconciliation:diprecord_list' %}">Dip Records</a>
+                <a href="{% url 'reconciliation:diprecord_create' %}">New Dip Record</a>
+                <a href="{% url 'reconciliation:pricerecord_list' %}">Price Records</a>
+                <a href="{% url 'reconciliation:pricerecord_create' %}">New Price Record</a>
+            </div>
+        </div>
+
+        <div class="subnav">
+            <button class="subnavbtn">Customers & Finance <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                <a href="{% url 'reconciliation:codcustomer_list' %}">COD Customers</a>
+                <a href="{% url 'reconciliation:codcustomer_create' %}">New COD Customer</a>
+                <a href="{% url 'reconciliation:bankdeposit_list' %}">Bank Deposits</a>
+                <a href="{% url 'reconciliation:bankdeposit_create' %}">New Bank Deposit</a>
+            </div>
+        </div>
+
+        <div class="subnav">
+            <button class="subnavbtn">Operations <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                {% if user.is_authenticated and user.role in 'CEO' or user.is_superuser %}
+                <a href="{% url 'reconciliation:pettycashallocation_list' %}">Petty Cash Allocations</a>
+                <a href="{% url 'reconciliation:pettycashallocation_create' %}">New Petty Cash Allocation</a>
+                {% endif %}
+                {% if user.is_authenticated and user.role in 'MANAGER,SENIOR_MANAGER,CEO' or user.is_superuser %}
+                <a href="{% url 'reconciliation:allocate_oil_to_cashier' %}">Allocate Oil</a>
+                {% endif %}
+                {% if user.is_authenticated and user.role in 'MANAGER,SENIOR_MANAGER,CEO' or user.is_superuser %}
+                <a href="{% url 'reconciliation:add_oil_product' %}">Add Oil Product</a>
+                {% endif %}
+                
+            </div>
+        </div>
+        
+        <div class="subnav">
+            <button class="subnavbtn">Stocktake <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                {% if user.is_authenticated and user.role in 'MANAGER,SENIOR_MANAGER,CEO' or user.is_superuser %}
+                <a href="{% url 'reconciliation:stocktake_list' %}">View Stocktakes</a>
+                <a href="{% url 'reconciliation:stocktake_create' %}">New Stocktake</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="subnav">
+            <button class="subnavbtn">Expenses <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                
+                <a href="{% url 'reconciliation:businessexpense_create' %}">New Business Expense</a>
+                <a href="{% url 'reconciliation:businessexpense_list' %}">View Business Expenses</a>
+                <a href="{% url 'reconciliation:expensecategory_create' %}">New Expense Category</a>
+                <a href="{% url 'reconciliation:expensecategory_list' %}">View Categories</a>
+                <a href="{% url 'reconciliation:pettycashexpense_list' %}">Petty Cash Expenses</a>
+                <a href="{% url 'reconciliation:pettycashexpense_create' %}">New Petty Cash Expense</a>
+            </div>
+        </div>
+
+        <div class="subnav">
+            <button class="subnavbtn">Reports <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                <a href="{% url 'reconciliation:daily_fuel_sales_summary' %}">Daily Fuel Sales</a>
+                <a href="{% url 'reconciliation:monthly_fuel_revenue_report' %}">Monthly Fuel Revenue</a>
+                <a href="{% url 'reconciliation:variance_report' %}">Variance Report</a>
+                <a href="{% url 'reconciliation:cashier_warehouse_report' %}">Cashier Warehouse Report</a>
+                <a href="{% url 'reconciliation:oil_stock_report' %}">Oil Stock Report</a>
+                <a href="{% url 'reconciliation:oil_sales_report' %}">Oil Sales Report</a>
+                <a href="{% url 'reconciliation:all_expenses_report' %}">Expenses Report</a>
+                <a href="{% url 'reconciliation:stock_change_report' %}">Stock Change report</a>
+            
+            </div>
+        </div>
+
+        {% if user.is_authenticated and user.role in 'CEO' or user.is_superuser %}
+        <div class="subnav">
+            <button class="subnavbtn">Admin <i class="fa fa-caret-down"></i></button>
+            <div class="subnav-content">
+                <a href="{% url 'users:register_fingerprint' %}">Register Fingerprint</a>
+                <a href="{% url 'admin:index' %}">Django Admin</a>
+                <a href="{% url 'attendance:dashboard' %}">Attendance Module</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Page Content -->
+    <div class="page-content">
+        {% block content %}
+           
+
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; {% now "Y" %} H-Thebado System</p>
+    </footer>
+
+    <!-- Preloader Script -->
+    <script>
+        var isAuthenticated = {{ request.user.is_authenticated|yesno:"true,false" }};
+    </script>
+
+    <script>
+    window.addEventListener("load", function() {
+        setTimeout(function() {
+            var preloaderElement = document.getElementById('preloader');
+            if (preloaderElement) {
+                preloaderElement.classList.add("hidden-preloader"); // Fade out after 5 seconds
+                setTimeout(function() {
+                    preloaderElement.remove(); // Remove from DOM
+                }, 1000);
+            }
+        }, 5000); // 5-second delay
+    });
+    </script>
+
+
+
+    <!-- Alpine.js (already there if you're using x-data) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.effect(() => {
+            setTimeout(() => {
+                const input = document.getElementById('monthPicker');
+                if (input && !input._flatpickr) {
+                flatpickr(input, {
+                    plugins: [new monthSelectPlugin({
+                    shorthand: true,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y"
+                    })]
+                });
+                }
+            }, 300); // delay for Alpine rendering
+            });
+        });
+    </script>
+
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <!-- Month Select Plugin CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Month Select Plugin JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+
+{% block extra_head %}{% endblock %}
+    
+{% block extra_scripts %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // ----------- Sales Trend Line Chart -----------
+    const salesCtx = document.getElementById("topSalesHistogram");
+    let salesTrendData = {};
+    try {
+        salesTrendData = JSON.parse('{{ sales_trend_data|escapejs }}') || {};
+    } catch (e) {
+        console.error("❌ Error parsing sales_trend_data:", e);
+    }
+
+    if (salesCtx && Array.isArray(salesTrendData.labels) && salesTrendData.labels.length > 0) {
+        new Chart(salesCtx, {
+            type: "line",
+            data: {
+                labels: salesTrendData.labels,
+                datasets: [
+                    {
+                        label: "ULP Sold (L)",
+                        data: salesTrendData.ulp || [],
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        backgroundColor: "rgba(255, 99, 132, 0.1)",
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    },
+                    {
+                        label: "Diesel Sold (L)",
+                        data: salesTrendData.diesel || [],
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        backgroundColor: "rgba(54, 162, 235, 0.1)",
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Date' },
+                        ticks: {
+                            autoSkip: true,
+                            maxRotation: 45,
+                            callback: function(value) {
+                                return salesTrendData.labels[value]?.slice(5) || value;
+                            }
+                        },
+                        grid: { display: false }
+                    },
+                    y: {
+                        title: { display: true, text: 'Liters Sold' },
+                        ticks: {
+                            callback: v => v.toLocaleString() + ' L'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    } else {
+        console.warn("📭 No sales chart data or canvas not found.");
+    }
+
+    // ----------- Expense Doughnut Chart -----------
+    const expenseCtx = document.getElementById("expenseChart");
+    if (expenseCtx) {
+        const expenseLabels = [
+            {% for cat in category_totals %}
+                "{{ cat.category__name|escapejs }}"{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ];
+
+        const expenseDataValues = [
+            {% for cat in category_totals %}
+                {{ cat.total|default:"0" }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ];
+
+        if (expenseLabels.length && expenseDataValues.length && expenseLabels.length === expenseDataValues.length) {
+            const colorPalette = [
+                '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f',
+                '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'
+            ];
+            const backgroundColors = expenseLabels.map((_, i) => colorPalette[i % colorPalette.length]);
+
+            new Chart(expenseCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: expenseLabels,
+                    datasets: [{
+                        label: 'Expenses (R)',
+                        data: expenseDataValues,
+                        backgroundColor: backgroundColors,
+                        hoverOffset: 30,
+                        borderWidth: 1,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 20,
+                                padding: 15,
+                                font: { size: 14 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `R${parseFloat(ctx.parsed).toFixed(2)}`
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            console.warn("⚠️ Expense chart data is missing or inconsistent.");
+        }
+    } else {
+        console.warn("❌ Canvas for expense chart not found.");
+    }
+
+    // ----------- Variance Bar Chart -----------
+    const varianceCtx = document.getElementById("varianceBarChart");
+    let varianceLabels = [];
+    let varianceValues = [];
+
+    try {
+        varianceLabels = {{ variance_labels|default:"[]"|safe }};
+        varianceValues = {{ variance_values|default:"[]"|safe }};
+    } catch (e) {
+        console.error("❌ Error parsing variance data:", e);
+    }
+
+    if (varianceCtx && Array.isArray(varianceLabels) && varianceLabels.length > 0) {
+        new Chart(varianceCtx, {
+            type: "bar",
+            data: {
+                labels: varianceLabels,
+                datasets: [{
+                    label: "Variance (R)",
+                    data: varianceValues,
+                    backgroundColor: "rgba(255, 159, 64, 0.7)",
+                    borderColor: "rgba(255, 159, 64, 1)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Variance Amount' }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `R${ctx.parsed.y.toFixed(2)}`
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        console.warn("❌ Canvas for variance chart not found or no data.");
+    }
+});
+</script>
+{% endblock %}

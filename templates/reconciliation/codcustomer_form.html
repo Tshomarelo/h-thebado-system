@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %} <!-- If you use django-crispy-forms -->
+
+{% block title %}{% if form.instance.pk %}Edit COD Customer{% else %}Register New COD Customer{% endif %} - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4" style="color: #E2E8F0;">{% if form.instance.pk %}Edit COD Customer: {{ form.instance.name }}{% else %}Register New COD Customer{% endif %}</h2>
+        <div class="form-container">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <p>
+                    <label for="{{ form.name.id_for_label }}">Customer/Company Name:</label>
+                    {{ form.name }}
+                    {% for error in form.name.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.contact_person.id_for_label }}">Contact Person (Optional):</label>
+                    {{ form.contact_person }}
+                    {% for error in form.contact_person.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.contact_phone.id_for_label }}">Contact Phone (Optional):</label>
+                    {{ form.contact_phone }}
+                    {% for error in form.contact_phone.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.contact_email.id_for_label }}">Contact Email (Optional):</label>
+                    {{ form.contact_email }}
+                    {% for error in form.contact_email.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.initial_deposit_amount.id_for_label }}">Initial Deposit Amount (R):</label>
+                    {{ form.initial_deposit_amount }}
+                    {% for error in form.initial_deposit_amount.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.pop_reference.id_for_label }}">Proof of Payment (POP) Reference (Optional):</label>
+                    {{ form.pop_reference }}
+                    {% for error in form.pop_reference.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.notes.id_for_label }}">Notes (Optional):</label>
+                    {{ form.notes }}
+                    {% for error in form.notes.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p class="mb-3">
+                    {{ form.is_active.label_tag }}
+                    {{ form.is_active }}
+                    {% for error in form.is_active.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                
+                <button type="submit" class="btn btn-primary mt-3">{% if form.instance.pk %}Update Customer{% else %}Register Customer{% endif %}</button>
+                <a href="{% url 'reconciliation:codcustomer_list' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

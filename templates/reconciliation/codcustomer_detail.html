@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}COD Customer: {{ customer.name }} - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+    <h2>COD Customer Details: {{ customer.name }}</h2>
+    <a href="{% url 'reconciliation:codcustomer_list' %}" class="btn btn-info">&laquo; Back to COD Customer List</a>
+    <!-- Add edit link if needed: <a href="{% url 'reconciliation:codcustomer_update' customer.pk %}" class="btn">Edit Customer</a> -->
+
+    <div style="margin-top: 20px;">
+        <h3>Customer Information</h3>
+        <p><strong>Name:</strong> {{ customer.name }}</p>
+        <p><strong>Contact Person:</strong> {{ customer.contact_person|default:"N/A" }}</p>
+        <p><strong>Contact Phone:</strong> {{ customer.contact_phone|default:"N/A" }}</p>
+        <p><strong>Contact Email:</strong> {{ customer.contact_email|default:"N/A" }}</p>
+        <p><strong>Initial Deposit (R):</strong> {{ customer.initial_deposit_amount|floatformat:2 }}</p>
+        <p><strong>Current Balance (R):</strong> <strong style="font-size: 1.2em; color: {% if customer.current_balance >= 0 %}green{% else %}red{% endif %};">{{ customer.current_balance|floatformat:2 }}</strong></p>
+        <p><strong>POP Reference:</strong> {{ customer.pop_reference|default:"N/A" }}</p>
+        <p><strong>Registration Date:</strong> {{ customer.registration_date|date:"Y-m-d" }}</p>
+        <p><strong>Status:</strong> {% if customer.is_active %}Active{% else %}Inactive{% endif %}</p>
+        <p><strong>Notes:</strong> {{ customer.notes|default:"N/A"|linebreaksbr }}</p>
+    </div>
+
+    <hr style="margin: 30px 0;">
+
+    <h3>Registered Vehicles</h3>
+    {% if perms.reconciliation.add_codvehicle %}
+    <a href="{% url 'reconciliation:codvehicle_create' customer_pk=customer.pk %}" class="btn">Add New Vehicle</a>
+    {% endif %}
+    {% if vehicles %}
+        <table style="margin-top:10px;">
+            <thead>
+                <tr>
+                    <th>Registration Number</th>
+                    <th>Company on Vehicle</th>
+                    <th>Active</th>
+                    <th>Notes</th>
+                    <!-- <th>Actions</th> -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for vehicle in vehicles %}
+                <tr>
+                    <td>{{ vehicle.registration_number }}</td>
+                    <td>{{ vehicle.company_name_on_vehicle|default:customer.name }}</td>
+                    <td>{% if vehicle.is_active %}Yes{% else %}No{% endif %}</td>
+                    <td>{{ vehicle.notes|default:"N/A" }}</td>
+                    <!-- <td><a href="#" class="btn btn-sm btn-info">Edit</a></td> -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No vehicles registered for this customer.</p>
+    {% endif %}
+
+    <hr style="margin: 30px 0;">
+
+    <h3>Recent COD Transactions</h3>
+    {% if perms.reconciliation.add_codtransaction %}
+        <!-- Consider a more specific link if transactions are tied to shifts/cashiers -->
+        <a href="{% url 'reconciliation:codtransaction_create' %}?customer_vehicle_id={{ vehicles.first.id|default:'' }}" class="btn">Log New Transaction for this Customer</a>
+    {% endif %}
+    {% if transactions %}
+        <table style="margin-top:10px;">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Vehicle Reg.</th>
+                    <th>Product</th>
+                    <th>Liters</th>
+                    <th>Price/L (R)</th>
+                    <th>Value (R)</th>
+                    <th>Cashier</th>
+                    <th>Shift ID</th>
+                    <th>Approved By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.transaction_datetime|date:"Y-m-d H:i" }}</td>
+                    <td>{{ tx.customer_vehicle.registration_number }}</td>
+                    <td>{{ tx.get_product_type_display }}</td>
+                    <td>{{ tx.liters_dispensed|floatformat:2 }}</td>
+                    <td>{{ tx.price_per_liter_at_time|floatformat:3 }}</td>
+                    <td>{{ tx.transaction_value_at_time|floatformat:2 }}</td>
+                    <td>{{ tx.cashier_verifying.name }}</td>
+                    <td><a href="{% url 'reconciliation:shift_detail' tx.shift.pk %}">{{ tx.shift.stowe_shift_id }}</a></td>
+                    <td>{{ tx.manager_approved_by.username|default:"Pending" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No COD transactions found for this customer.</p>
+    {% endif %}
+
+{% endblock %}

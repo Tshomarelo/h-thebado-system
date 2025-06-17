@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Variance Report – Sales vs Cash Submissions{% endblock %}
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Header + Export -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">💸 Variance Report</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reconciliation:export_variance_report_csv' %}?start_date={{ start_date }}&end_date={{ end_date }}&cashier_id={{ cashier_id }}" class="btn btn-success">
+                ⬇ Export CSV
+            </a>
+            <a href="{% url 'reconciliation:export_variance_report_pdf' %}?start_date={{ start_date }}&end_date={{ end_date }}&cashier_id={{ cashier_id }}" class="btn btn-danger">
+                📄 Export PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="get" class="card card-body shadow-sm mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" value="{{ start_date }}" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" value="{{ end_date }}" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Cashier</label>
+                <select name="cashier_id" class="form-select">
+                    <option value="">All Cashiers</option>
+                    {% for cashier in cashiers %}
+                    <option value="{{ cashier.id }}" {% if cashier.id|stringformat:"s" == cashier_id %}selected{% endif %}>
+                        {{ cashier.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">🔍 Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Variance Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Shift</th>
+                    <th>Expected Revenue (R)</th>
+                    <th>Total Submitted (R)</th>
+                    <th>Variance (R)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in report_data %}
+                <tr>
+                    <td>{{ data.shift }}</td>
+                    <td>R {{ data.expected_revenue|floatformat:2 }}</td>
+                    <td>R {{ data.total_submitted|floatformat:2 }}</td>
+                    <td class="{% if data.variance < 0 %}text-danger{% elif data.variance > 0 %}text-success{% endif %}">
+                        R {{ data.variance|floatformat:2 }}
+                    </td>
+                    <td>
+                        <span class="badge {% if data.variance_label == 'SHORT' %}bg-danger{% elif data.variance_label == 'OVER' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ data.variance_label }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No data found for the selected filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

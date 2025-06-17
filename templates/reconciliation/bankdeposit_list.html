@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Bank Deposits - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<h2>Bank Deposits</h2>
+{% if perms.reconciliation.add_bankdeposit %}
+    <a href="{% url 'reconciliation:bankdeposit_create' %}" class="btn">Log New Bank Deposit</a>
+{% endif %}
+
+{% if deposits %}
+    <table>
+        <thead>
+            <tr>
+                <th>Deposit Date</th>
+                <th>Amount (R)</th>
+                <th>Reference Number</th>
+                <th>Deposited By</th>
+                <th>Notes</th>
+                <th>Recorded At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for deposit in deposits %}
+            <tr>
+                <td>{{ deposit.deposit_date|date:"Y-m-d" }}</td>
+                <td>{{ deposit.amount|floatformat:2 }}</td>
+                <td>{{ deposit.reference_number|default:"N/A" }}</td>
+                <td>{{ deposit.deposited_by.username }}</td>
+                <td>{{ deposit.notes|default:"N/A" }}</td>
+                <td>{{ deposit.created_at|date:"Y-m-d H:i" }}</td>
+                <!-- Add view/edit links if needed later -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No bank deposits found.</p>
+{% endif %}
+{% endblock %}

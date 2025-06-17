@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Fingerprint{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'fingerprint/app.css' %}">
+<link rel="stylesheet" href="{% static 'fingerprint/lib/bootstrap.min.css' %}">
+<style>
+    .finger-select.active {
+        background-color: #28a745 !important;
+        border-color: #28a745;
+        color: white;
+    }
+    .finger-select {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+    .messages {
+        list-style: none;
+        padding: 0;
+    }
+    .messages li {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .messages li.success { background-color: #d4edda; color: #155724; }
+    .messages li.error { background-color: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">🖐️ Register Fingerprint for <strong>{{ user.username }}</strong></h2>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <span>📡 Fingerprint Device Interface</span>
+            <nav class="nav nav-pills">
+                <a href="#" id="Reader" class="nav-link active" onclick="toggle_visibility(['content-reader','content-capture']);setActive('Reader','Capture')">Reader</a>
+                <a href="#" id="Capture" class="nav-link" onclick="toggle_visibility(['content-capture','content-reader']);setActive('Capture','Reader')">Capture</a>
+            </nav>
+        </div>
+
+        <div class="card-body">
+            <div id="Scores" class="mb-3">
+                <label>Scan Quality:</label>
+                <input type="text" id="qualityInputBox" class="form-control w-25 d-inline-block" readonly style="background-color:#f1f1f1; text-align:center;">
+            </div>
+
+            <div id="content-reader">
+                <div class="mb-3">
+                    <label>Select Reader:</label>
+                    <select class="form-control w-50" id="readersDropDown" onchange="selectChangeEvent()"></select>
+                </div>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-primary" id="refreshList" onclick="Javascript:readersDropDownPopulate(false)">🔄 Refresh List</button>
+                    <button class="btn btn-info" id="capabilities" data-toggle="modal" data-target="#myModal" onclick="Javascript:populatePopUpModal()">⚙️ Capabilities</button>
+                </div>
+            </div>
+
+            <div id="content-capture" style="display: none;">
+                <div id="status" class="mt-3"></div>
+                <div id="imagediv" class="my-3"></div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-warning" id="clearButton" onclick="Javascript:onClear()">🗑️ Clear</button>
+                    <button class="btn btn-success" id="start" onclick="Javascript:onStart()" disabled>▶️ Start</button>
+                    <button class="btn btn-danger" id="stop" onclick="Javascript:onStop()">⏹️ Stop</button>
+                    <button class="btn btn-info" id="info" onclick="Javascript:onGetInfo()">ℹ️ Info</button>
+                </div>
+
+                <div id="deviceInfo" class="mb-4"></div>
+
+                <form method="post" id="fingerprintForm">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <input type="hidden" name="fingerprint_data" id="fingerprint_data">
+                    <input type="hidden" name="finger_type" id="finger_type">
+
+                    <p class="fw-bold">Select the finger to register:</p>
+                    <div class="mb-3 d-flex flex-wrap">
+                        <button type="button" class="btn btn-outline-primary finger-select" data-finger="thumb">👍 Thumb</button>
+                        <button type="button" class="btn btn-outline-primary finger-select" data-finger="index">☝️ Index</button>
+                        <button type="button" class="btn btn-outline-primary finger-select" data-finger="middle">✌️ Middle</button>
+                        <button type="button" class="btn btn-outline-primary finger-select" data-finger="ring">💍 Ring</button>
+                        <button type="button" class="btn btn-outline-primary finger-select" data-finger="little">🖐️ Little</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">✅ Register Fingerprint</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">🧭 Reader Information</h5>
+                    <button type="button" class="btn-close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body" id="ReaderInformationFromDropDown">
+                    <!-- Reader Info will load here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'fingerprint/lib/jquery.min.js' %}"></script>
+<script src="{% static 'fingerprint/lib/bootstrap.min.js' %}"></script>
+<script src="{% static 'fingerprint/scripts/es6-shim.js' %}"></script>
+<script src="{% static 'fingerprint/scripts/websdk.client.bundle.min.js' %}"></script>
+<script src="{% static 'fingerprint/scripts/fingerprint.sdk.min.js' %}"></script>
+<script src="{% static 'fingerprint/app.js' %}"></script>
+
+<script>
+    // Handle form submission
+    $("#fingerprintForm").on("submit", function () {
+        const data = localStorage.getItem("intermediate");
+        if (data) {
+            $("#fingerprint_data").val(data);
+        } else {
+            alert("⚠️ Please scan a fingerprint first.");
+            return false;
+        }
+    });
+
+    // Handle finger type selection
+    $(".finger-select").on("click", function () {
+        $(".finger-select").removeClass("active");
+        $(this).addClass("active");
+
+        const fingerType = $(this).data("finger");
+        $("#finger_type").val(fingerType);
+
+        // Enable start button
+        $('#start').prop('disabled', false);
+    });
+
+    // Tab navigation
+    function setActive(activeId, inactiveId) {
+        $("#" + activeId).addClass("active");
+        $("#" + inactiveId).removeClass("active");
+    }
+
+    function toggle_visibility(showIds) {
+        $("#content-reader, #content-capture").hide();
+        showIds.forEach(id => $("#" + id).show());
+    }
+</script>
+{% endblock %}

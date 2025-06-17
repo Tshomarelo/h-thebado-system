@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {{ page_title|default:"Shift Adjustment" }} - {{ block.super }}
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {# Card structure removed, form-container will provide styling #}
+            <h2 class="text-center mb-4" style="color: #E2E8F0;">
+                {% if adjustment %}
+                    Edit Shift Adjustment for {{ adjustment.attendant.user.get_full_name|default:adjustment.attendant.user.username }}
+                {% else %}
+                    {{ page_title|default:"New Shift Adjustment" }}
+                {% endif %}
+            </h2>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="background-color: #2D3748; color: #E2E8F0; border-color: #4A5568;">
+                        {{ message }}
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <div class="form-container">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            {% if adjustment %}Update Adjustment{% else %}Save Adjustment{% endif %}
+                        </button>
+                        <a href="{% url 'attendance:dashboard' %}" class="btn btn-secondary mt-2" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                    </div>
+                </form>
+            </div>
+            {% if adjustment %}
+            <div class="text-center mt-3" style="color: #A0AEC0; font-size: 0.9em;">
+                Adjusting entry ID: {{ adjustment.pk }}. Last adjusted by: {{ adjustment.adjusted_by.username|default:"N/A" }} on {{ adjustment.adjustment_timestamp|date:"Y-m-d H:i" }}.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

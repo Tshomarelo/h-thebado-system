@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}COD Customers - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<h2>COD Customers</h2>
+{% if perms.reconciliation.add_codcustomer %}
+    <a href="{% url 'reconciliation:codcustomer_create' %}" class="btn">Register New COD Customer</a>
+{% endif %}
+
+{% if customers %}
+    <table>
+        <thead>
+            <tr>
+                <th>Customer Name</th>
+                <th>Contact Person</th>
+                <th>Contact Phone</th>
+                <th>Current Balance (R)</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td><a href="{% url 'reconciliation:codcustomer_detail' customer.pk %}">{{ customer.name }}</a></td>
+                <td>{{ customer.contact_person|default:"N/A" }}</td>
+                <td>{{ customer.contact_phone|default:"N/A" }}</td>
+                <td>{{ customer.current_balance|floatformat:2 }}</td>
+                <td>{% if customer.is_active %}Yes{% else %}No{% endif %}</td>
+                <td>
+                    <a href="{% url 'reconciliation:codcustomer_detail' customer.pk %}" class="btn btn-info">View Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No COD customers found.</p>
+{% endif %}
+{% endblock %}

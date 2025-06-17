@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Oil Stock Allocations - Cashier Warehouse{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="text-light bg-dark p-3 rounded shadow">
+    <i class="bi bi-cash-stack me-2">Oil Allocations to Cashiers</i>
+    </h2>
+    <a href="{% url 'reconciliation:allocate_oil_to_cashier' %}" class="btn btn-success">
+      <i class="bi bi-box-arrow-in-down me-1"></i> New Allocation
+    </a>
+  </div>
+
+  {% if allocations %}
+    <div class="table-responsive">
+      <table class="table table-light table-striped table-hover table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Cashier</th>
+            <th>Oil Product</th>
+            <th>Quantity</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for allocation in allocations %}
+            <tr>
+              <td>{{ allocation.cashier.get_full_name|default:allocation.cashier.username }}</td>
+              <td>{{ allocation.oil_product.name }}</td>
+              <td>{{ allocation.quantity }} units</td>
+              <td>{{ allocation.updated_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info mt-4">No oil allocations have been recorded yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shift Records{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Shift Records</h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'reconciliation:shift_create' %}" class="btn btn-primary btn-sm rounded-pill">+ New Shift</a>
+      <a href="{% url 'reconciliation:export_shifts_csv' %}" class="btn btn-outline-secondary btn-sm rounded-pill">📄 Export CSV</a>
+      <button id="toggleCompact" class="btn btn-outline-dark btn-sm rounded-pill">🗜 Compact Mode</button>
+    </div>
+  </div>
+
+  <!-- Search Form -->
+  <form method="get" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-3">
+      <label for="stowe_id" class="form-label">STOWE ID</label>
+      <input type="text" id="stowe_id" name="stowe_id" value="{{ request.GET.stowe_id }}" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label for="cashier" class="form-label">Cashier</label>
+      <input type="text" id="cashier" name="cashier" value="{{ request.GET.cashier }}" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label for="shift_type" class="form-label">Shift Type</label>
+      <select name="shift_type" id="shift_type" class="form-select">
+        <option value="">All</option>
+        {% for choice in shift_type_choices %}
+          <option value="{{ choice.0 }}" {% if request.GET.shift_type == choice.0|stringformat:"s" %}selected{% endif %}>
+            {{ choice.1 }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="date" class="form-label">Date</label>
+      <input type="date" id="date" name="date" value="{{ request.GET.date }}" class="form-control">
+    </div>
+    <div class="col-12 d-flex justify-content-end mt-2">
+      <button type="submit" class="btn btn-outline-primary btn-sm me-2">🔍 Search</button>
+      <a href="{% url 'reconciliation:shift_list' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+    </div>
+  </form>
+
+  {% if shifts %}
+  <div class="table-responsive">
+    <table id="shiftTable" class="table table-bordered table-sm table-hover shadow-sm align-middle">
+      <thead class="table-light text-center">
+        <tr>
+          <th>STOWE ID</th>
+          <th>Cashier</th>
+          <th>Shift Type</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Status</th>
+          <th>Attachment</th>
+          <th style="min-width: 120px;" class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for shift in shifts %}
+        <tr>
+          <td><a href="{% url 'reconciliation:shift_detail' shift.pk %}">{{ shift.stowe_shift_id }}</a></td>
+          <td>{{ shift.cashier.get_full_name|default:shift.cashier.username }}</td>
+          <td>{{ shift.get_shift_type_display }}</td>
+          <td>{{ shift.start_datetime|date:"Y-m-d H:i" }}</td>
+          <td>{{ shift.end_datetime|date:"Y-m-d H:i" }}</td>
+          <td>
+            {% if shift.congestion_entry %}
+              <span class="badge bg-success">Submitted</span>
+            {% else %}
+              <span class="badge bg-secondary">Pending Submission</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if shift.attachment %}
+              {% if shift.attachment.url|lower|slice:"-4:" == ".pdf" %}
+                <a href="{{ shift.attachment.url }}" class="btn btn-sm btn-outline-info" target="_blank">PDF</a>
+              {% else %}
+                <a href="{{ shift.attachment.url }}" target="_blank">
+                  <img src="{{ shift.attachment.url }}" alt="Attachment" style="height: 40px; border-radius: 4px;" />
+                </a>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <a href="{% url 'reconciliation:shift_detail' shift.pk %}" class="btn btn-sm btn-info">View</a>
+            {% if not shift.congestion_entry %}
+              <a href="{% url 'reconciliation:combined_fuel_oil_ingestion' %}?shift={{ shift.id }}" class="btn btn-sm btn-outline-primary">Submit</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% if is_paginated %}
+  {% with request.GET.urlencode as query_string %}
+    <nav>
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?{{ query_string }}&page=1">&laquo;</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?{{ query_string }}&page={{ page_obj.previous_page_number }}">Previous</a>
+          </li>
+        {% endif %}
+        <li class="page-item disabled">
+          <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?{{ query_string }}&page={{ page_obj.next_page_number }}">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?{{ query_string }}&page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endwith %}
+{% endif %}
+
+
+
+  {% else %}
+  <div class="alert alert-info text-center">No shifts found yet. Click "New Shift" to begin.</div>
+  {% endif %}
+</div>
+
+<style>
+  .compact-table td,
+  .compact-table th {
+    padding: 0.3rem !important;
+    font-size: 0.85rem !important;
+  }
+</style>
+
+<script>
+  document.getElementById("toggleCompact").addEventListener("click", function () {
+    const table = document.getElementById("shiftTable");
+    table.classList.toggle("compact-table");
+  });
+</script>
+{% endblock %}

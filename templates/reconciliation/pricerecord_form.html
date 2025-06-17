@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Set New Fuel Price - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4" style="color: #E2E8F0;">Set New Fuel Price</h2>
+        <div class="form-container">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <p>
+                    <label for="{{ form.fuel_type.id_for_label }}">Fuel Type:</label>
+                    {{ form.fuel_type }}
+                    {% for error in form.fuel_type.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+
+                <p>
+                    <label for="{{ form.price_type.id_for_label }}">Price Type:</label>
+                    {{ form.price_type }}
+                    {% for error in form.price_type.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                    <small id="priceTypeWarning" class="form-text text-warning mt-1"></small>
+                </p>
+
+                <p>
+                    <label for="{{ form.price_per_liter.id_for_label }}">Price per Liter (R):</label>
+                    {{ form.price_per_liter }}
+                    {% if form.price_per_liter.help_text %}
+                        <small class="form-text text-muted">{{ form.price_per_liter.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.price_per_liter.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+
+                <p class="mb-3">
+                    <label for="{{ form.effective_date.id_for_label }}">Effective Date:</label>
+                    {{ form.effective_date }}
+                    {% if form.effective_date.help_text %}
+                        <small class="form-text text-muted">{{ form.effective_date.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.effective_date.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+
+                <button type="submit" class="btn btn-primary mt-3">Save Price Record</button>
+                <a href="{% url 'reconciliation:pricerecord_list' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const priceTypeSelect = document.getElementById('{{ form.price_type.auto_id }}');
+        const warningText = document.getElementById('priceTypeWarning');
+
+        function updateWarning() {
+            const val = priceTypeSelect.value;
+            if (val === 'original') {
+                warningText.textContent = "Note that selecting normal price might result in huge variance values, which might affect cashiers.";
+            } else if (val === 'truncate') {
+                warningText.textContent = "Truncating is used to ensure that the variance value doesn't have huge differences.";
+            } else {
+                warningText.textContent = "";
+            }
+        }
+
+        priceTypeSelect.addEventListener('change', updateWarning);
+        updateWarning(); // Trigger on load
+    });
+</script>
+{% endblock %}

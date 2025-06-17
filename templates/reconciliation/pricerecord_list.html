@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Fuel Price History - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<h2>Fuel Price History</h2>
+
+{% if perms.reconciliation.add_pricerecord %}
+    <a href="{% url 'reconciliation:pricerecord_create' %}" class="btn">Set New Fuel Price</a>
+{% endif %}
+
+{% if prices %}
+    <table>
+        <thead>
+            <tr>
+                <th>Effective Date</th>
+                <th>Fuel Type</th>
+                <th>Price per Liter (R)</th>
+                <th>Truncated Price per Liter (R)</th>
+                <th>Set By</th>
+                <th>Recorded At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for price in prices %}
+            <tr>
+                <td>{{ price.effective_date|date:"Y-m-d" }}</td>
+                <td>{{ price.get_fuel_type_display }}</td>
+                <td>{{ price.price_per_liter|floatformat:3 }}</td>
+                <td>{{ price.truncated_price_per_liter|floatformat:6 }}</td>
+                <td>{{ price.set_by.username }}</td>
+                <td>{{ price.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No fuel price records found.</p>
+{% endif %}
+{% endblock %}

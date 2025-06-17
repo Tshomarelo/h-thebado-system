@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %} <!-- If you use django-crispy-forms -->
+
+{% block title %}Log Bank Deposit - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4" style="color: #E2E8F0;">Log New Bank Deposit</h2>
+        <div class="form-container">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <p>
+                    <label for="{{ form.deposit_date.id_for_label }}">Deposit Date:</label>
+                    {{ form.deposit_date }}
+                    {% for error in form.deposit_date.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.amount.id_for_label }}">Amount (R):</label>
+                    {{ form.amount }}
+                    {% for error in form.amount.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.reference_number.id_for_label }}">Reference Number (Optional):</label>
+                    {{ form.reference_number }}
+                    {% for error in form.reference_number.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                <p class="mb-3">
+                    <label for="{{ form.notes.id_for_label }}">Notes (Optional):</label>
+                    {{ form.notes }}
+                    {% for error in form.notes.errors %}
+                        <span class="invalid-feedback d-block">{{ error }}</span>
+                    {% endfor %}
+                </p>
+                
+                <button type="submit" class="btn btn-primary mt-3">Save Deposit</button>
+                <a href="{% url 'reconciliation:bankdeposit_list' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

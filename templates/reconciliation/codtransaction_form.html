@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %} <!-- If you use django-crispy-forms -->
+
+{% block title %}Log COD Transaction - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="text-center mb-4" style="color: #E2E8F0;">
+            <h2>Log New COD Transaction</h2>
+            {% if form.initial.customer_vehicle %}
+                <p class="mb-1"><strong>For Vehicle:</strong> {{ form.initial.customer_vehicle.registration_number }} (Customer: {{ form.initial.customer_vehicle.customer.name }})</p>
+                <p><strong>Current Balance:</strong> R {{ form.initial.customer_vehicle.customer.current_balance|floatformat:2 }}</p>
+            {% endif %}
+            {% if form.initial.shift %}
+                <p><strong>Current Shift:</strong> {{ form.initial.shift.stowe_shift_id }} (Cashier: {{ form.initial.shift.cashier.name }})</p>
+            {% endif %}
+        </div>
+        
+        <div class="form-container">
+            <form method="post" id="codTransactionForm" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" style="background-color: #4A0404; color: #FEB2B2; border-color: #FC8181;">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# These hidden fields should be styled by .form-container input if they were visible #}
+                {# For hidden fields, no direct styling is usually needed unless they affect layout #}
+                {% if form.initial.shift %}{{ form.shift }}{% endif %}
+                {% if form.initial.cashier_verifying %}{{ form.cashier_verifying }}{% endif %}
+                {{ form.price_per_liter_at_time }}
+
+                <p>
+                    <label for="{{ form.customer_vehicle.id_for_label }}">Customer Vehicle:</label>
+                    {{ form.customer_vehicle }}
+                    {% for error in form.customer_vehicle.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.product_type.id_for_label }}">Product Type:</label>
+                    {{ form.product_type }}
+                    {% for error in form.product_type.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p>
+                    <label for="{{ form.liters_dispensed.id_for_label }}">Liters Dispensed:</label>
+                    {{ form.liters_dispensed }}
+                    {% for error in form.liters_dispensed.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                <p id="price_display_container" style="display:none; margin-bottom: 1rem;"> {# Adjusted margin #}
+                    <label>Price per Liter (R):</label>
+                    <span id="price_display" style="color: #CBD5E0; background-color: #2D3748; padding: 5px 10px; border-radius: 4px;">N/A</span>
+                </p>
+                <p class="mb-3">
+                    <label for="{{ form.notes.id_for_label }}">Notes (e.g., specific oil type):</label>
+                    {{ form.notes }}
+                    {% for error in form.notes.errors %}<span class="invalid-feedback d-block">{{ error }}</span>{% endfor %}
+                </p>
+                
+                <button type="submit" class="btn btn-primary mt-3">Log Transaction</button>
+                {% if form.initial.customer_vehicle %}
+                    <a href="{% url 'reconciliation:codcustomer_detail' pk=form.initial.customer_vehicle.customer.pk %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                {% else %}
+                    <a href="{% url 'reconciliation:codcustomer_list' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productTypeSelect = document.getElementById('{{ form.product_type.id_for_label }}');
+    // const pricePerLiterInput = document.getElementById('{{ form.price_per_liter_at_time.id_for_label }}'); // This is a hidden input
+    const priceDisplay = document.getElementById('price_display');
+    const priceDisplayContainer = document.getElementById('price_display_container');
+
+    function updatePriceDisplayBasedOnHiddenInput() {
+        // This function is not strictly needed if the view handles price correctly.
+        // The JS is more for future AJAX or complex client-side price lookups.
+        // For now, the form submission relies on the hidden field being set by the view/form logic.
+    }
+
+    if (productTypeSelect) {
+        productTypeSelect.addEventListener('change', function() {
+            const selectedProduct = this.value;
+            if (selectedProduct && selectedProduct !== 'OIL') {
+                priceDisplayContainer.style.display = 'block';
+                priceDisplay.textContent = 'Price auto-calculated on save'; // Or fetch via AJAX
+            } else if (selectedProduct === 'OIL') {
+                priceDisplayContainer.style.display = 'block';
+                priceDisplay.textContent = 'Enter price manually if not set';
+            } else {
+                priceDisplayContainer.style.display = 'none';
+            }
+        });
+        // Trigger change on load if a product is pre-selected to show the message
+        if(productTypeSelect.value){
+            productTypeSelect.dispatchEvent(new Event('change'));
+        }
+    }
+});
+</script>
+{% endblock %}

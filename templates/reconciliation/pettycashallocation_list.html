@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Petty Cash Allocations - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="text-light bg-dark p-3 rounded shadow">
+    <i class="bi bi-cash-stack me-2"></i>Petty Cash Allocations
+    </h2>
+    {% if perms.reconciliation.add_pettycashallocation %}
+      <a href="{% url 'reconciliation:pettycashallocation_create' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle me-1"></i> New Allocation
+      </a>
+    {% endif %}
+  </div>
+
+  {% if allocations %}
+    <div class="table-responsive">
+      <table class="table table-light table-striped table-hover table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Allocated By</th>
+            <th scope="col">Amount (R)</th>
+            <th scope="col">Status</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for allocation in allocations %}
+          <tr>
+            <td>{{ allocation.allocation_date|date:"Y-m-d" }}</td>
+            <td>{{ allocation.allocated_by.get_full_name|default:allocation.allocated_by.username }}</td>
+            <td>R {{ allocation.amount|floatformat:2 }}</td>
+            <td>
+              {% if allocation.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+              {% endif %}
+            </td>
+            <td>{{ allocation.notes|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info mt-4">No petty cash allocations found.</div>
+  {% endif %}
+</div>
+{% endblock %}

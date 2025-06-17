@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ page_title|default:"Combined Fuel & Oil Sale Ingestion" }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">{{ page_title|default:"Combined Fuel & Oil Sale Ingestion (STOWE)" }}</h2>
+
+<form method="post" enctype="multipart/form-data" id="ingestionForm" novalidate>
+    {% csrf_token %}
+
+    <!-- Shift & STOWE -->
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.stowe_shift_number.label_tag }}
+            {{ form.stowe_shift_number }}
+            {% if form.stowe_shift_number.help_text %}
+                <div class="form-text">{{ form.stowe_shift_number.help_text }}</div>
+            {% endif %}
+            {% for error in form.stowe_shift_number.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.shift.label_tag }}
+            {{ form.shift }}
+            {% if form.shift.help_text %}
+                <div class="form-text">{{ form.shift.help_text }}</div>
+            {% endif %}
+            {% for error in form.shift.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Cashier display -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <label for="display_cashier_name" class="form-label">Cashier</label>
+            <input type="text" id="display_cashier_name" class="form-control" value="{{ cashier_name|default:'(Unavailable)' }}" readonly>
+        </div>
+    </div>
+
+
+<h4 class="mt-4">Fuel Sales (STOWE Reported)</h4>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        {{ form.diesel_volume_stowe.label_tag }}
+        {{ form.diesel_volume_stowe }}
+        {% for error in form.diesel_volume_stowe.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Unit Price (Diesel)</label>
+        <input type="text" id="display_unit_price_diesel" class="form-control" readonly>
+    </div>
+    <div class="col-md-3 mb-3">
+        {{ form.diesel_value_rands.label_tag }}
+        {{ form.diesel_value_rands }}
+        {% for error in form.diesel_value_rands.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        {{ form.ulp_volume_stowe.label_tag }}
+        {{ form.ulp_volume_stowe }}
+        {% for error in form.ulp_volume_stowe.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Unit Price (ULP)</label>
+        <input type="text" id="display_unit_price_ulp" class="form-control" readonly>
+    </div>
+    <div class="col-md-3 mb-3">
+        {{ form.ulp_value_rands.label_tag }}
+        {{ form.ulp_value_rands }}
+        {% for error in form.ulp_value_rands.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mb-4">
+    <label class="form-label">Combined Total Fuel Sale</label>
+    <input type="text" id="display_combined_total_fuel_sale" class="form-control" readonly disabled>
+</div>
+
+
+        <!-- Fuel Adjustments -->
+<!-- Fuel Adjustment Section -->
+<h4 class="mt-4">Fuel Adjustment (Business-Side)</h4>
+<div class="row">
+  <div class="col-md-4 mb-3">
+    {{ form.adjustment_amount.label_tag }}
+    {{ form.adjustment_amount }}
+    {% for error in form.adjustment_amount.errors %}
+      <div class="invalid-feedback d-block">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="col-md-4 mb-3">
+    {{ form.adjustment_direction.label_tag }}
+    {{ form.adjustment_direction }}
+    {% for error in form.adjustment_direction.errors %}
+      <div class="invalid-feedback d-block">{{ error }}</div>
+    {% endfor %}
+  </div>
+</div>
+<div class="mb-3">
+  {{ form.adjustment_note.label_tag }}
+  {{ form.adjustment_note }}
+  {% for error in form.adjustment_note.errors %}
+    <div class="invalid-feedback d-block">{{ error }}</div>
+  {% endfor %}
+</div>
+
+
+
+<!-- Oil Sales -->
+<div x-data="oilSaleController" x-init="init()" class="mt-4">
+  <h4 class="mb-3">Oil Sales</h4>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label for="oil_product_select" class="form-label">Oil Product</label>
+      <select id="oil_product_select" name="oil_product" class="form-select" required>
+        <option value="" selected disabled>-- Select Oil Product --</option>
+        {% for id, name in oil_product_choices %}
+          <option value="{{ id }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2 mb-3">
+      {{ form.oil_quantity_sold.label_tag }}
+      {{ form.oil_quantity_sold }}
+      {% for error in form.oil_quantity_sold.errors %}
+        <div class="invalid-feedback d-block">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="col-md-2 mb-3">
+      <label for="display_unit_price_oil" class="form-label">Unit Price (Oil)</label>
+      <input type="text" id="display_unit_price_oil" class="form-control" readonly disabled>
+    </div>
+
+    <div class="col-md-2 mb-3">
+      <label for="display_total_sale_oil" class="form-label">Total Sale (Oil)</label>
+      <input type="text" id="display_total_sale_oil" class="form-control" readonly disabled>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label for="display_oil_remaining_stock" class="form-label">Remaining Stock (Oil)</label>
+      <input type="text" id="display_oil_remaining_stock" class="form-control" readonly disabled>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Stock Alert</label>
+      <div id="display_oil_stock_alert" class="alert alert-warning d-none">
+        ⚠️ Low stock for selected oil product
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        <!-- COD + Declarations -->
+        <h4 class="mt-4">COD Sales & Cashier Declaration</h4>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.total_cod_sales_value_shift.label_tag }}
+                {{ form.total_cod_sales_value_shift }}
+                {% for error in form.total_cod_sales_value_shift.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.cash_submitted.label_tag }}
+                {{ form.cash_submitted }}
+                {% for error in form.cash_submitted.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.speedpoint_submitted.label_tag }}
+                {{ form.speedpoint_submitted }}
+                {% for error in form.speedpoint_submitted.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <ul>
+        {% for label, value in congestion_entry.summary.items %}
+            <li><strong>{{ label }}:</strong> R {{ value|floatformat:2 }}</li>
+        {% endfor %}
+        </ul>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Submit Ingestion</button>
+            <a href="{% url 'reconciliation:shift_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function safeFloat(value) {
+        if (typeof value !== 'string') return 0;
+        const cleaned = value.replace(/,/g, '').trim();
+        const parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+
+    const dieselVolumeInput = document.getElementById('{{ form.diesel_volume_stowe.id_for_label }}');
+    const totalSaleDieselInput = document.getElementById('display_total_sale_diesel');
+    const unitPriceDieselOutput = document.getElementById('display_unit_price_diesel');
+
+    const ulpVolumeInput = document.getElementById('{{ form.ulp_volume_stowe.id_for_label }}');
+    const totalSaleUlpInput = document.getElementById('display_total_sale_ulp');
+    const unitPriceUlpOutput = document.getElementById('display_unit_price_ulp');
+
+    const combinedTotalOutput = document.getElementById('display_combined_total_fuel_sale');
+
+    function updateFuelCalculations() {
+        const dieselVol = safeFloat(dieselVolumeInput?.value);
+        const dieselTotal = safeFloat(totalSaleDieselInput?.value);
+        const ulpVol = safeFloat(ulpVolumeInput?.value);
+        const ulpTotal = safeFloat(totalSaleUlpInput?.value);
+
+        const dieselUnit = dieselVol > 0 ? dieselTotal / dieselVol : 0;
+        const ulpUnit = ulpVol > 0 ? ulpTotal / ulpVol : 0;
+
+        unitPriceDieselOutput.value = dieselUnit.toFixed(10);
+        unitPriceUlpOutput.value = ulpUnit.toFixed(10);
+        combinedTotalOutput.value = (dieselTotal + ulpTotal).toFixed(2);
+    }
+
+    dieselVolumeInput?.addEventListener('input', updateFuelCalculations);
+    totalSaleDieselInput?.addEventListener('input', updateFuelCalculations);
+    ulpVolumeInput?.addEventListener('input', updateFuelCalculations);
+    totalSaleUlpInput?.addEventListener('input', updateFuelCalculations);
+
+    updateFuelCalculations(); // run once on page load
+});
+</script>
+
+<script>
+document.addEventListener("alpine:init", () => {
+  Alpine.data("oilSaleController", () => ({
+    oilData: JSON.parse('{{ oil_products_data_json|default:"{}"|escapejs }}'),
+
+    update() {
+      const productSelect = document.getElementById("oil_product_select");
+      const unitPriceInput = document.getElementById("display_unit_price_oil");
+      const quantityInput = document.getElementById("id_oil_quantity_sold");
+      const totalField = document.getElementById("display_total_sale_oil");
+      const stockField = document.getElementById("display_oil_remaining_stock");
+      const stockAlert = document.getElementById("display_oil_stock_alert");
+
+      const selectedId = productSelect?.value;
+      const product = this.oilData[selectedId];
+      if (!product) return;
+
+      const price = parseFloat(product.selling_price || 0);
+      const stock = parseFloat(product.current_stock_units || 0);
+      const threshold = parseFloat(product.low_stock_threshold || 0);
+      const qty = parseFloat(quantityInput?.value || 0);
+      const total = qty * price;
+      const isLow = stock <= threshold;
+
+      if (unitPriceInput) unitPriceInput.value = price.toFixed(2);
+      if (stockField) stockField.value = stock.toFixed(2);
+      if (totalField) totalField.value = total.toFixed(2);
+      if (stockAlert) stockAlert.classList.toggle("d-none", !isLow);
+    },
+
+    init() {
+      setTimeout(() => {
+        const productSelect = document.getElementById("oil_product_select");
+        const quantityInput = document.getElementById("id_oil_quantity_sold");
+
+        if (productSelect) productSelect.addEventListener("change", () => this.update());
+        if (quantityInput) quantityInput.addEventListener("input", () => this.update());
+
+        this.update();
+      }, 50); // slight delay lets Alpine render dynamic DOM elements
+    }
+  }));
+});
+</script>
+
+{% endblock %}

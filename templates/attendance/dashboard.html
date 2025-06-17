@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {{ page_title|default:"Attendance Dashboard" }} - {{ block.super }}
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ page_title|default:"Attendance Dashboard" }}</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <a href="{% url 'attendance:assign_shift' %}" class="btn btn-primary mb-2 w-100">Assign Shift</a>
+                    <a href="{% url 'attendance:clock_in' %}" class="btn btn-success mb-2 w-100">Clock In</a>
+                    <a href="{% url 'attendance:clock_out' %}" class="btn btn-warning mb-2 w-100">Clock Out</a>
+                    <a href="{% url 'attendance:hourly_rate_entry' %}" class="btn btn-info mb-2 w-100">Manage Hourly Rates</a>
+                    <a href="{% url 'attendance:adjust_shift_new' %}" class="btn btn-secondary mb-2 w-100">New Shift Adjustment</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Work Schedule Overview</h5>
+                    <p><a href="{% url 'attendance:work_schedule_overview' %}" class="btn btn-outline-primary">View Full Schedule</a></p>
+                    {% if work_schedules %}
+                        <h6>Upcoming/Recent Schedules:</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for schedule in work_schedules|slice:":5" %}
+                                <li class="list-group-item">
+                                    {{ schedule.date|date:"D, d M Y" }} - <strong>{{ schedule.attendant.user.get_full_name|default:schedule.attendant.user.username }}</strong> ({{ schedule.shift.name }})
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No work schedules found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Clock-Ins</h5>
+                    {% if recent_clock_ins %}
+                        <ul class="list-group list-group-flush">
+                            {% for ci in recent_clock_ins %}
+                                <li class="list-group-item">
+                                    {{ ci.attendant.user.get_full_name|default:ci.attendant.user.username }} - {{ ci.timestamp|date:"d M Y H:i:s" }}
+                                    {% if ci.is_manual_adjustment %}<span class="badge bg-warning text-dark ms-2">Manual</span>{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No recent clock-ins.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Clock-Outs</h5>
+                    {% if recent_clock_outs %}
+                        <ul class="list-group list-group-flush">
+                            {% for co in recent_clock_outs %}
+                                <li class="list-group-item">
+                                    {{ co.attendant.user.get_full_name|default:co.attendant.user.username }} - {{ co.timestamp|date:"d M Y H:i:s" }}
+                                    {% if co.is_manual_adjustment %}<span class="badge bg-warning text-dark ms-2">Manual</span>{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No recent clock-outs.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}

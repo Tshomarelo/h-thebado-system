@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Allocation Successful{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="alert alert-success text-center shadow-sm">
+    <h4 class="mb-3">✅ Allocation Completed</h4>
+    <p class="mb-1">The oil stock has been successfully assigned to the cashier's warehouse.</p>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{% url 'reconciliation:allocate_oil_to_cashier' %}" class="btn btn-outline-success me-2">
+      Allocate More
+    </a>
+        <a href="{% url 'reconciliation:allocate_oil_list' %}" class="btn btn-secondary">
+        View All Allocations
+        </a>
+    </a>
+  </div>
+</div>
+{% endblock %}

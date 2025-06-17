@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Petty Cash Expenses - Fuel Reconciliation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="text-light bg-dark p-3 rounded shadow">
+    <i class="bi bi-cash-stack me-2"></i>Petty Cash Expenses
+    </h2>
+    {% if perms.reconciliation.add_pettycashexpense %}
+      <a href="{% url 'reconciliation:pettycashexpense_create' %}" class="btn btn-primary">
+        <i class="bi bi-receipt-cutoff me-1"></i> Log New Expense
+      </a>
+    {% endif %}
+  </div>
+
+  {% if expenses %}
+    <div class="table-responsive">
+      <table class="table table-light table-striped table-hover table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Description</th>
+            <th scope="col">Amount (R)</th>
+            <th scope="col">Float</th>
+            <th scope="col">Logged By</th>
+            <th scope="col">Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for expense in expenses %}
+            <tr>
+              <td>{{ expense.expense_date|date:"Y-m-d" }}</td>
+              <td>{{ expense.description|truncatechars:50 }}</td>
+              <td>R {{ expense.amount|floatformat:2 }}</td>
+              <td>{{ expense.allocation }}</td>
+              <td>{{ expense.logged_by.get_full_name|default:expense.logged_by.username }}</td>
+              <td>
+                {% if expense.receipt_slip %}
+                  {% if expense.receipt_slip.url|lower|slice:'-4:' == ".pdf" %}
+                    <a href="{{ expense.receipt_slip.url }}" class="btn btn-sm btn-outline-info" target="_blank">PDF</a>
+                  {% else %}
+                    <a href="{{ expense.receipt_slip.url }}" target="_blank">
+                      <img src="{{ expense.receipt_slip.url }}" alt="Receipt" style="height: 40px; border-radius: 4px;" />
+                    </a>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info mt-4">No petty cash expenses recorded.</div>
+  {% endif %}
+</div>
+{% endblock %}

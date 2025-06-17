@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {{ page_title|default:"Assign Shift" }} - {{ block.super }}
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                {# Card structure can be removed or kept depending on desired final look #}
+                {# For now, let's assume we replace card with form-container for styling #}
+                <h2 class="text-center mb-4" style="color: #E2E8F0;">{{ page_title|default:"Assign New Shift" }}</h2>
+                <div class="form-container">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-primary mt-3">Assign Shift</button>
+                        <a href="{% url 'attendance:dashboard' %}" class="btn btn-secondary mt-3" style="background-color: #4A5568; border-color: #4A5568;">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        /* Page specific style to ensure .page-content from base.html doesn't add extra margin if not desired */
+        /* This might be better handled by adjusting .page-content in dashboard.css if forms are always centered */
+        .page-content > .container > .row > .col-md-8 { margin-top: 0 !important; }
+    </style>
+</div>
+{% endblock content %}

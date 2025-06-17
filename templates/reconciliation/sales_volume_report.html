@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Sales Volume Report" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ page_title }}</h2>
+    <hr>
+
+    <form method="get" class="mb-4 p-3 border rounded bg-light">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="period" class="form-label">Period</label>
+                <select name="period" id="period" class="form-select">
+                    {% for value, display in period_choices %}
+                        <option value="{{ value }}" {% if period_filter == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3" id="start_date_col">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control">
+            </div>
+            <div class="col-md-3" id="end_date_col">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label for="fuel_type" class="form-label">Fuel Type</label>
+                <select name="fuel_type" id="fuel_type" class="form-select">
+                    {% for value, display in fuel_type_choices %}
+                        <option value="{{ value }}" {% if fuel_type_filter == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="card-header">
+            Report Summary ({{ start_date }} to {{ end_date }}) - Fuel Type: {{ fuel_type_filter }}
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Sales Volumes</h5>
+            <div class="row mb-3">
+                {% if fuel_type_filter == 'ULP' or fuel_type_filter == 'ALL' %}
+                <div class="col-md-3">
+                    <h6>Total ULP Volume</h6>
+                    <p class="fs-5">{{ total_ulp_volume|floatformat:2 }} L</p>
+                </div>
+                {% endif %}
+                {% if fuel_type_filter == 'DIESEL' or fuel_type_filter == 'ALL' %}
+                <div class="col-md-3">
+                    <h6>Total Diesel Volume</h6>
+                    <p class="fs-5">{{ total_diesel_volume|floatformat:2 }} L</p>
+                </div>
+                {% endif %}
+                {% if fuel_type_filter == 'ALL' %}
+                <div class="col-md-3">
+                    <h6>Total Combined Fuel Volume</h6>
+                    <p class="fs-5">{{ total_combined_volume|floatformat:2 }} L</p>
+                </div>
+                {% endif %}
+            </div>
+            <hr>
+            <h5 class="card-title">Profit Summary</h5>
+            <div class="row">
+                {% if fuel_type_filter == 'ULP' or fuel_type_filter == 'ALL' %}
+                <div class="col-md-3">
+                    <h6>Total ULP Profit</h6>
+                    <p class="fs-5">R {{ total_ulp_profit|floatformat:2 }}</p>
+                </div>
+                {% endif %}
+                {% if fuel_type_filter == 'DIESEL' or fuel_type_filter == 'ALL' %}
+                <div class="col-md-3">
+                    <h6>Total Diesel Profit</h6>
+                    <p class="fs-5">R {{ total_diesel_profit|floatformat:2 }}</p>
+                </div>
+                {% endif %}
+                 <div class="col-md-3"> <!-- Always show total oil profit -->
+                    <h6>Total Oil Profit</h6>
+                    <p class="fs-5">R {{ total_oil_profit|floatformat:2 }}</p>
+                </div>
+                {% if fuel_type_filter == 'ALL' %}
+                <div class="col-md-3">
+                    <h6>Total Combined Profit</h6>
+                    <p class="fs-5">R {{ total_combined_profit|floatformat:2 }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if detailed_shifts_data %}
+    <div class="card mt-4">
+        <div class="card-header">
+            Detailed Shift Data
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Shift Date</th>
+                        <th>STOWE Shift ID</th>
+                        <th>Cashier</th>
+                        {% if fuel_type_filter == 'ULP' or fuel_type_filter == 'ALL' %}
+                            <th class="text-end">ULP Vol. (L)</th>
+                            <th class="text-end">ULP Profit (R)</th>
+                        {% endif %}
+                        {% if fuel_type_filter == 'DIESEL' or fuel_type_filter == 'ALL' %}
+                            <th class="text-end">Diesel Vol. (L)</th>
+                            <th class="text-end">Diesel Profit (R)</th>
+                        {% endif %}
+                        <th class="text-end">Oil Sales (R)</th>
+                        <th class="text-end">Oil Profit (R)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data_item in detailed_shifts_data %}
+                    <tr>
+                        <td>{{ data_item.object.start_datetime|date:"Y-m-d" }}</td>
+                        <td><a href="{% url 'reconciliation:shift_detail' data_item.object.pk %}">{{ data_item.object.stowe_shift_id }}</a></td>
+                        <td>{{ data_item.object.cashier.username }}</td>
+                        {% if fuel_type_filter == 'ULP' or fuel_type_filter == 'ALL' %}
+                            <td class="text-end">{{ data_item.object.stowe_sales_ulp|floatformat:2 }}</td>
+                            <td class="text-end">{{ data_item.ulp_profit|floatformat:2 }}</td>
+                        {% endif %}
+                        {% if fuel_type_filter == 'DIESEL' or fuel_type_filter == 'ALL' %}
+                            <td class="text-end">{{ data_item.object.stowe_sales_diesel|floatformat:2 }}</td>
+                            <td class="text-end">{{ data_item.diesel_profit|floatformat:2 }}</td>
+                        {% endif %}
+                        <td class="text-end">{{ data_item.object.stowe_sales_oil|floatformat:2 }}</td>
+                        <td class="text-end">{{ data_item.oil_profit_for_shift|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if fuel_type_filter == 'ALL' %}8{% elif fuel_type_filter == 'ULP' or fuel_type_filter == 'DIESEL'%}7{% else %}5{% endif %}" class="text-center">No shift data found for the selected criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const periodSelect = document.getElementById('period');
+    const startDateCol = document.getElementById('start_date_col');
+    const endDateCol = document.getElementById('end_date_col');
+
+    function toggleDateFields() {
+        if (periodSelect.value === 'custom') {
+            startDateCol.style.display = 'block';
+            endDateCol.style.display = 'block';
+        } else {
+            startDateCol.style.display = 'none';
+            endDateCol.style.display = 'none';
+        }
+    }
+    periodSelect.addEventListener('change', toggleDateFields);
+    toggleDateFields(); // Initial check
+});
+</script>
+
+{% endblock %}
